@@ -31,7 +31,7 @@ end
 function dimension(mesh::MeshADE)
     length(mesh.Ih[1])
 end
-function x(i::Vector{T}, h::T)::Vector{T} where {T<:Number}
+function x(i::Vector{Int64}, h)::Vector{Float64}
     return i * h
 end
 
