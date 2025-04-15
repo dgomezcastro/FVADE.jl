@@ -10,4 +10,6 @@ include("mesh.jl")
 
 include("equations.jl")
 
+include("plot.jl")
+
 end # module FVADE
