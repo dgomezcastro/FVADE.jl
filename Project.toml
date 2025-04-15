@@ -2,3 +2,17 @@ name = "FVADE"
 uuid = "5d501bba-b699-476a-a68f-26d2e41c9b5c"
 authors = ["David Gomez-Castro <david@gomezcastro.xyz>"]
 version = "0.1.0"
+
+[deps]
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
+NonlinearSolve = "8913a72c-1f9b-4ce2-8d82-65094dcecaec"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+ForwardDiff = "1.0.1"
+JuliaFormatter = "2.1.1"
+NonlinearSolve = "4.5.1"
+StaticArrays = "1.9.13"
+Test = "1.11.0"
