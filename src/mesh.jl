@@ -85,7 +85,11 @@ end
 
 function initialize_VV_WW(h, Ih, V, K)
     Nh = length(Ih)
-    VV = [V(x(i, h)) for i in Ih]
+    if isnothing(V)
+        VV = nothing
+    else
+        VV = [V(x(i, h)) for i in Ih]
+    end
     if isnothing(K)
         KK = nothing
     else

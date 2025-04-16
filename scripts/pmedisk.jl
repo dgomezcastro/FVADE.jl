@@ -5,11 +5,10 @@ using Plots
 h = 2^-2
 is_in_Omega(x) = (sum(x .^ 2) < 1.5)
 limits = [(-4, 4), (-4, 4)]
-V(x) = sum(x .^ 2) / 2
 problem = FVADE.ADEProblem(
-    s -> s^2 / 2,
-    V,
-    nothing
+    U=s -> s^2 / 2,
+    V=x -> sum(x .^ 2) / 2,
+    K=nothing
 )
 println("Meshing")
 mesh = FVADE.MeshADE(
@@ -43,7 +42,6 @@ anim = @animate for n in 1:N
     )
     # println("\n sum(ρ)=", sum(ρ))
     next!(p)
-    println()
 end
 
 mp4(anim, "figures/pme-disk.mp4")

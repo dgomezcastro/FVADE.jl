@@ -1,16 +1,21 @@
 using NonlinearSolve
 
 function ξ(ρ::Vector{T}, problem::ADEProblem, mesh::MeshADE) where {T<:Number}
-    ξ = problem.Uprime.(ρ) +
-        mesh.VV
+    ξ = zeros(T, size(ρ))
+    if !(isnothing(problem.U))
+        ξ += problem.Uprime.(ρ)
+    end
+    if !(isnothing(problem.V))
+        ξ += mesh.VV
+    end
     if !(isnothing(problem.K))
         cube_volume = (mesh.h)^(dimension(mesh))
-        ξ = ξ +
+        ξ +=
             cube_volume *
             [
-            sum(mesh.KK[p, q] * ρ[q] for q in eachindex(mesh.Ih))
-            for p in eachindex(mesh.Ih)
-        ]
+                sum(mesh.KK[p, q] * ρ[q] for q in eachindex(mesh.Ih))
+                for p in eachindex(mesh.Ih)
+            ]
     end
     return ξ
 end
@@ -38,10 +43,11 @@ end
 """
 F[p,k] = F_{i_p + 1/2 * e_k}    
 """
-function F(ρ::Vector{T}, v, mesh::MeshADE) where {T<:Number}
+function F(ρ::Vector{T}, v, problem::ADEProblem, mesh::MeshADE) where {T<:Number}
     Nh = length(mesh.Ih)
     d = dimension(mesh)
     F = Matrix{T}(undef, Nh, d)
+    mobupwind(a, b) = max(problem.mobup(a) * problem.mobdown(b), 0.0)
     for p in eachindex(mesh.Ih)
         for k = 1:d
             q = mesh.neighbours_plus[p, k] #i_q = i_p + e_k
@@ -49,9 +55,9 @@ function F(ρ::Vector{T}, v, mesh::MeshADE) where {T<:Number}
                 F[p, k] = 0.0
             elseif v[p, k] ≥ 0
                 # Inside implicit solver this values ρ < 0 is possible
-                F[p, k] = max(ρ[p], 0.0) * v[p, k]
+                F[p, k] = mobupwind(ρ[p], ρ[q]) * v[p, k]
             elseif v[p, k] < 0
-                F[p, k] = max(ρ[q], 0.0) * v[p, k]
+                F[p, k] = mobupwind(ρ[q], ρ[p]) * v[p, k]
             end
         end
     end
@@ -78,7 +84,7 @@ end
 function implicit_problem(ρ, ρ_prev, F, problem, mesh, τ)
     ξ_ρ = ξ(ρ, problem, mesh)
     v_ρ = v(ξ_ρ, mesh)
-    F_ρ = F(ρ, v_ρ, mesh)
+    F_ρ = F(ρ, v_ρ, problem, mesh)
     H_ρ = H(ρ, F_ρ, mesh, τ)
     return H_ρ - ρ_prev
 end

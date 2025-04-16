@@ -4,10 +4,10 @@
     limits = [(-4, 4), (-4, 4)]
     V(x) = sum(x .^ 2) / 2
     problem = FVADE.ADEProblem(
-        s -> s^2 / 2,
-        s -> s,
-        V,
-        nothing
+        U=s -> s^2 / 2,
+        Uprime=s -> s,
+        V=V,
+        K=nothing
     )
     mesh = FVADE.MeshADE(
         problem=problem,

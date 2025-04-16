@@ -3,13 +3,21 @@ module FVADE
 using ForwardDiff
 
 struct ADEProblem
-    U::Function
-    Uprime::Function
-    V::Function
+    U::Union{Function,Nothing}
+    Uprime::Union{Function,Nothing}
+    V::Union{Function,Nothing}
     K::Union{Function,Nothing}
+    mobup::Function
+    mobdown::Function
 end
-function ADEProblem(U, V, K; Uprime=s -> ForwardDiff.derivative(U, s))
-    return ADEProblem(U, Uprime, V, K)
+function ADEProblem(;
+    U::Union{Function,Nothing},
+    V::Union{Function,Nothing},
+    K::Union{Function,Nothing},
+    mobup::Function=s -> s,
+    mobdown::Function=s -> 1,
+    Uprime=isnothing(U) ? nothing : (s -> ForwardDiff.derivative(U, s)))
+    return ADEProblem(U, Uprime, V, K, mobup, mobdown)
 end
 
 include("mesh.jl")

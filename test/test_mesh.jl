@@ -21,7 +21,7 @@ end
         h = 2
         is_in_Omega(x) = (maximum(abs.(x)) < 1.5)
         limits = [(-1, 1), (-1, 1)]
-        problem = FVADE.ADEProblem(s -> s^2, x -> 0.0, (x, y) -> 0.0)
+        problem = FVADE.ADEProblem(U=s -> s^2, V=x -> 0.0, K=(x, y) -> 0.0)
         mesh = FVADE.MeshADE(
             problem=problem,
             is_in_Omega=is_in_Omega,
@@ -36,7 +36,7 @@ end
         h = 1
         is_in_Omega(x) = (sum(x .^ 2) < 1.5)
         limits = [(-2, 2), (-2, 2)]
-        problem = FVADE.ADEProblem(s -> s^2, x -> 0.0, (x, y) -> 0.0)
+        problem = FVADE.ADEProblem(U=s -> s^2, V=x -> 0.0, K=(x, y) -> 0.0)
         mesh = FVADE.MeshADE(
             problem=problem,
             is_in_Omega=is_in_Omega,
