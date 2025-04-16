@@ -1,13 +1,17 @@
 using NonlinearSolve
 
 function ξ(ρ::Vector{T}, problem::ADEProblem, mesh::MeshADE) where {T<:Number}
-    cube_volume = (mesh.h)^(dimension(mesh))
-    ξ = [
-        problem.U(ρ[p]) +
-        mesh.VV[p] +
-        cube_volume * sum(mesh.KK[p, q] * ρ[q] for q in eachindex(mesh.Ih))
-        for p in eachindex(mesh.Ih)
-    ]
+    ξ = problem.Uprime.(ρ) +
+        mesh.VV
+    if !(isnothing(problem.K))
+        cube_volume = (mesh.h)^(dimension(mesh))
+        ξ = ξ +
+            cube_volume *
+            [
+            sum(mesh.KK[p, q] * ρ[q] for q in eachindex(mesh.Ih))
+            for p in eachindex(mesh.Ih)
+        ]
+    end
     return ξ
 end
 
@@ -44,13 +48,14 @@ function F(ρ::Vector{T}, v, mesh::MeshADE) where {T<:Number}
             if isnothing(q)
                 F[p, k] = 0.0
             elseif v[p, k] ≥ 0
-                F[p, k] = ρ[p] * v[p, k]
-            else
-                F[p, k] = ρ[q] * v[p, k]
+                # Inside implicit solver this values ρ < 0 is possible
+                F[p, k] = max(ρ[p], 0.0) * v[p, k]
+            elseif v[p, k] < 0
+                F[p, k] = max(ρ[q], 0.0) * v[p, k]
             end
         end
     end
-    return v
+    return F
 end
 
 """
@@ -60,11 +65,8 @@ function H(ρ::Vector{T}, F, mesh, τ) where {T<:Number}
     dρ = zeros(T, length(mesh.Ih))
     for p in eachindex(mesh.Ih)
         for k = 1:dimension(mesh)
-            q_plus = mesh.neighbours_plus[p, k] #i_{q_+} = i_p + e_k
+            dρ[p] += F[p, k]
             q_minus = mesh.neighbours_minus[p, k] #i_{q_-} = i_p - e_k
-            if !(isnothing(q_plus))
-                dρ[p] += F[p, k]
-            end
             if !(isnothing(q_minus))
                 dρ[p] -= F[q_minus, k]
             end
@@ -73,17 +75,26 @@ function H(ρ::Vector{T}, F, mesh, τ) where {T<:Number}
     return ρ + (τ / mesh.h) * dρ
 end
 
-function implicit_problem(ρ_next, ρ, F, problem, mesh, τ)
-    ξ_next = ξ(ρ_next, problem, mesh)
-    v_next = v(ξ_next, mesh)
-    F_next = F(ρ_next, v_next, mesh)
-    H_next = H(ρ_next, F_next, mesh, τ)
-    return H_next - ρ
+function implicit_problem(ρ, ρ_prev, F, problem, mesh, τ)
+    ξ_ρ = ξ(ρ, problem, mesh)
+    v_ρ = v(ξ_ρ, mesh)
+    F_ρ = F(ρ, v_ρ, mesh)
+    H_ρ = H(ρ, F_ρ, mesh, τ)
+    return H_ρ - ρ_prev
 end
 
-function iterate(ρ, problem, mesh::MeshADE, τ)
-    f(ρ_next, _) = implicit_problem(ρ_next, ρ, F, problem, mesh, τ)
-    prob = NonlinearProblem(f, ρ, [])
-    sol = solve(prob, NewtonRaphson())
-    return sol.u
+function iterate(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Number; abs_tol=1e-3, max_iters=100)
+    G(ρ) = implicit_problem(ρ, ρ_prev, F, problem, mesh, τ)
+    ρ_next = Newton(G, ρ_prev; abs_tol=abs_tol, max_iters=max_iters)
+    # Newton solve may break positivity and mass conservation
+    ρ_next = max.(ρ_next, 0.0)
+    if sum(ρ_prev) > 0
+        ρ_next = ρ_next / sum(ρ_next) * sum(ρ_prev)
+    end
+    return ρ_next
+
+    # f(ρ_next, _) = implicit_problem(ρ_next, ρ, F, problem, mesh, τ)
+    # prob = NonlinearProblem(f, ρ, [])
+    # sol = solve(prob, NewtonRaphson(), abstol=1e-3, maxiters=round(Int64, 1e2))
+    # return sol.u
 end

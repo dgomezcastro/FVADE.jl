@@ -18,7 +18,7 @@ struct MeshADE
     neighbours_plus::Matrix{Union{Int64,Nothing}}
     neighbours_minus::Matrix{Union{Int64,Nothing}}
     VV::Vector
-    KK::Matrix
+    KK::Union{Matrix,Nothing}
 end
 function MeshADE(; problem::ADEProblem, is_in_Omega, h, mesh_limits)
     Ih = generate_Ih(is_in_Omega, h, mesh_limits)
@@ -31,7 +31,7 @@ end
 function dimension(mesh::MeshADE)
     length(mesh.Ih[1])
 end
-function x(i::Vector{Int64}, h)::Vector{Float64}
+function x(i::Vector{Int64}, h::Number)::Vector{Float64}
     return i * h
 end
 
@@ -43,9 +43,14 @@ function generate_Ih(is_in_Omega::Function, h::Real, mesh_limits::Vector)::Vecto
     end
     Ih = Vector{Vector{Int64}}()
     for i in cube_zip
-        x_i = x(collect(i), h)
+        if typeof(i) <: Number
+            i_vector = [i]
+        else
+            i_vector = collect(i)
+        end
+        x_i = x(i_vector, h)
         if is_in_Omega(x_i)
-            append!(Ih, [collect(i)])
+            append!(Ih, [i_vector])
         end
     end
     return Ih
@@ -80,12 +85,15 @@ end
 
 function initialize_VV_WW(h, Ih, V, K)
     Nh = length(Ih)
-    VV = Vector{Float64}(undef, Nh)
-    KK = Matrix{Float64}(undef, Nh, Nh)
-    for (p, i) in enumerate(Ih)
-        VV[p] = V(x(i, h))
-        for (q, j) in enumerate(Ih)
-            KK[p, q] = K(x(i, h), x(j, h))
+    VV = [V(x(i, h)) for i in Ih]
+    if isnothing(K)
+        KK = nothing
+    else
+        for (p, i) in enumerate(Ih)
+            KK = Matrix{Float64}(undef, Nh, Nh)
+            for (q, j) in enumerate(Ih)
+                KK[p, q] = K(x(i, h), x(j, h))
+            end
         end
     end
     return VV, KK
