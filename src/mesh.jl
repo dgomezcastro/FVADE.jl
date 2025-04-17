@@ -89,6 +89,7 @@ end
 
 function initialize_VV_WW(h, Ih, V, K)
     Nh = length(Ih)
+    d = length(Ih[1])
     if isnothing(V)
         VV = nothing
     else
@@ -100,7 +101,7 @@ function initialize_VV_WW(h, Ih, V, K)
         for (p, i) in enumerate(Ih)
             KK = Matrix{Float64}(undef, Nh, Nh)
             for (q, j) in enumerate(Ih)
-                KK[p, q] = K(x(i, h), x(j, h))
+                KK[p, q] = h^d * K(x(i, h), x(j, h))
             end
         end
     end

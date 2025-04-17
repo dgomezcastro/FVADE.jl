@@ -9,13 +9,7 @@ function ξ(ρ::Vector{T}, problem::ADEProblem, mesh::MeshADE) where {T<:Number}
         ξ += mesh.VV
     end
     if !(isnothing(problem.K))
-        cube_volume = (mesh.h)^(dimension(mesh))
-        ξ +=
-            cube_volume *
-            [
-                sum(mesh.KK[p, q] * ρ[q] for q in eachindex(mesh.Ih))
-                for p in eachindex(mesh.Ih)
-            ]
+        ξ += mesh.KK * ρ
     end
     return ξ
 end
