@@ -46,7 +46,7 @@ function vector_to_matrix(ρ, mesh::MeshADE)
     return ρ_matrix
 end
 
-function plot_2d(ρ, mesh)
+function plot_2d(ρ, mesh; color=nothing, alpha=1.0)
     d = dimension(mesh)
     if d ≠ 2
         @error "This function is for d=2"
@@ -54,7 +54,26 @@ function plot_2d(ρ, mesh)
 
     ρ_matrix = vector_to_matrix(ρ, mesh)
 
-    surface(mesh.plotting_object.xs, mesh.plotting_object.ys, ρ_matrix')
-    xlabel!(L"x")
-    ylabel!(L"y")
+    if isnothing(color)
+        p = surface(
+            mesh.plotting_object.xs,
+            mesh.plotting_object.ys,
+            ρ_matrix',
+            alpha=alpha
+        )
+    else
+        p = surface(
+            mesh.plotting_object.xs,
+            mesh.plotting_object.ys,
+            ρ_matrix',
+            c=cgrad([color, color]),
+            colorbar=false,
+            alpha=alpha
+        )
+    end
+
+    xlabel!(p, L"x")
+    ylabel!(p, L"y")
+
+    return p
 end
