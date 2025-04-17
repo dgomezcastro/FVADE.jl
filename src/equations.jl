@@ -63,9 +63,9 @@ function F(ρ::Vector{T}, v, problem::ADEProblem, mesh::MeshADE) where {T<:Numbe
 end
 
 """
-H(ρ)[p] = ρ_{i_p} + τ * ∑_k (F_{i_p+1/2e_k} - F_{i_p-1/2*e_k})
+L(ρ)[p] = τ * ∑_k (F_{i_p+1/2e_k} - F_{i_p-1/2*e_k})
 """
-function H(ρ::Vector{T}, F, mesh, τ) where {T<:Number}
+function L(F::Matrix{T}, mesh, τ) where {T<:Number}
     dρ = zeros(T, length(mesh.Ih))
     for p in eachindex(mesh.Ih)
         for k = 1:dimension(mesh)
@@ -76,15 +76,15 @@ function H(ρ::Vector{T}, F, mesh, τ) where {T<:Number}
             end
         end
     end
-    return ρ + (τ / mesh.h) * dρ
+    return (τ / mesh.h) * dρ
 end
 
 function implicit_problem(ρ, ρ_prev, F, problem, mesh, τ)
     ξ_ρ = ξ(ρ, problem, mesh)
     v_ρ = v(ξ_ρ, mesh)
     F_ρ = F(ρ, v_ρ, problem, mesh)
-    H_ρ = H(ρ, F_ρ, mesh, τ)
-    return H_ρ - ρ_prev
+    L_ρ = L(F_ρ, mesh, τ)
+    return ρ + L_ρ - ρ_prev
 end
 
 function iterate(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Number; abs_tol=1e-3, max_iters=100)
@@ -101,4 +101,17 @@ function iterate(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Number; abs_to
     # prob = NonlinearProblem(f, ρ, [])
     # sol = solve(prob, NewtonRaphson(), abstol=1e-3, maxiters=round(Int64, 1e2))
     # return sol.u
+end
+
+function iterate_explicit(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Number; abs_tol=1e-3, max_iters=100)
+    ξ_ρ = ξ(ρ_prev, problem, mesh)
+    v_ρ = v(ξ_ρ, mesh)
+    F_ρ = F(ρ_prev, v_ρ, problem, mesh)
+    L_ρ = L(F_ρ, mesh, τ)
+    ρ_next = ρ_prev - L_ρ
+    ρ_next = max.(ρ_next, 0.0)
+    if sum(ρ_prev) > 0
+        ρ_next = ρ_next / sum(ρ_next) * sum(ρ_prev)
+    end
+    return ρ_next
 end

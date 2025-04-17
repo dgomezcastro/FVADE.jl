@@ -1,4 +1,4 @@
-@testset "ξ, v, F, H, iterate with trivial data" begin
+@testset "ξ, v, F, L, iterate with trivial data" begin
     h = 1
     is_in_Omega(x) = (sum(x .^ 2) < 1.5)
     limits = [(-2, 2), (-2, 2)]
@@ -15,8 +15,8 @@
     F = FVADE.F(ρ, v, problem, mesh)
     @test F == zeros(length(mesh.Ih), FVADE.dimension(mesh))
     τ = 1e-2
-    H = FVADE.H(ρ, F, mesh, τ)
-    @test H == zeros(length(mesh.Ih))
+    L = FVADE.L(F, mesh, τ)
+    @test L == zeros(length(mesh.Ih))
     ρ_next = FVADE.iterate(ρ, problem, mesh, τ)
     @test ρ_next == zeros(length(mesh.Ih))
 end
@@ -39,6 +39,6 @@ end
     F = FVADE.F(ρ, v, problem, mesh)
     @test F ≈ [0.0; 0.0; 0.0; -0.0; -0.0; -0.0; 0.0;;]
     τ = 0.1
-    H = FVADE.H(ρ, F, mesh, τ)
-    @test H ≈ [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    L = FVADE.L(F, mesh, τ)
+    @test L ≈ [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 end
