@@ -1,19 +1,39 @@
-using Plots
+using Plots, LaTeXStrings
 
-function plot_2d(ρ, mesh)
+struct MeshADEPlotData2d <: MeshADEPlotData
+    i1s
+    i2s
+    xs
+    ys
+end
+
+function initialize_plotmesh_2d!(mesh::MeshADE)
+    d = dimension(mesh)
+    if d ≠ 2
+        @error "This function is for d=2"
+    end
+    imins = [minimum(i[k] for i in mesh.Ih) for k = 1:d]
+    imaxs = [maximum(i[k] for i in mesh.Ih) for k = 1:d]
+
+    i1s = imins[1]:imaxs[1]
+    i2s = imins[2]:imaxs[2]
+    xs = mesh.h * i1s
+    ys = mesh.h * i2s
+    mesh.plotting_object = MeshADEPlotData2d(i1s, i2s, xs, ys)
+end
+
+function vector_to_matrix(ρ, mesh::MeshADE)
     d = dimension(mesh)
     if d ≠ 2
         @error "This function is for d=2"
     end
 
-    imins = [minimum(i[k] for i in mesh.Ih) for k = 1:d]
-    imaxs = [maximum(i[k] for i in mesh.Ih) for k = 1:d]
+    if isnothing(mesh.plotting_object)
+        initialize_plotmesh_2d!(mesh)
+    end
 
-    i1s = imins[1]:imaxs[1]
-    xs = mesh.h * i1s
-    i2s = imins[2]:imaxs[2]
-    ys = mesh.h * i2s
-
+    i1s = mesh.plotting_object.i1s
+    i2s = mesh.plotting_object.i2s
     ρ_matrix = zeros(length(i1s), length(i2s))
     for (p1, i1) in enumerate(i1s)
         for (p2, i2) in enumerate(i2s)
@@ -23,6 +43,18 @@ function plot_2d(ρ, mesh)
             end
         end
     end
+    return ρ_matrix
+end
 
-    surface(xs, ys, ρ_matrix)
+function plot_2d(ρ, mesh)
+    d = dimension(mesh)
+    if d ≠ 2
+        @error "This function is for d=2"
+    end
+
+    ρ_matrix = vector_to_matrix(ρ, mesh)
+
+    surface(mesh.plotting_object.xs, mesh.plotting_object.ys, ρ_matrix')
+    xlabel!(L"x")
+    ylabel!(L"y")
 end

@@ -12,13 +12,17 @@ Mesh for ADE
 - VV[p] = V(x[p])
 - KK[p,q] = K(x[p],x[q])
 """
-struct MeshADE
-    h::Float64
-    Ih::Vector{Vector{Int64}}
-    neighbours_plus::Matrix{Union{Int64,Nothing}}
-    neighbours_minus::Matrix{Union{Int64,Nothing}}
+
+abstract type MeshADEPlotData end
+
+mutable struct MeshADE
+    const h::Float64
+    const Ih::Vector{Vector{Int64}}
+    const neighbours_plus::Matrix{Union{Int64,Nothing}}
+    const neighbours_minus::Matrix{Union{Int64,Nothing}}
     VV::Vector
     KK::Union{Matrix,Nothing}
+    plotting_object::Union{MeshADEPlotData,Nothing}
 end
 function MeshADE(; problem::ADEProblem, is_in_Omega, h, mesh_limits)
     Ih = generate_Ih(is_in_Omega, h, mesh_limits)
@@ -26,7 +30,7 @@ function MeshADE(; problem::ADEProblem, is_in_Omega, h, mesh_limits)
     neighbours_plus = find_neighbours_plus(Ih, d)
     neighbours_minus = find_neighbours_minus(Ih, d)
     VV, KK = initialize_VV_WW(h, Ih, problem.V, problem.K)
-    return MeshADE(h, Ih, neighbours_plus, neighbours_minus, VV, KK)
+    return MeshADE(h, Ih, neighbours_plus, neighbours_minus, VV, KK, nothing)
 end
 function dimension(mesh::MeshADE)
     length(mesh.Ih[1])
