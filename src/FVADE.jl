@@ -11,9 +11,9 @@ struct ADEProblem
     mobdown::Function
 end
 function ADEProblem(;
-    U::Union{Function,Nothing},
-    V::Union{Function,Nothing},
-    K::Union{Function,Nothing},
+    U::Union{Function,Nothing}=nothing,
+    V::Union{Function,Nothing}=nothing,
+    K::Union{Function,Nothing}=nothing,
     mobup::Function=s -> s,
     mobdown::Function=s -> 1,
     Uprime=isnothing(U) ? nothing : (s -> ForwardDiff.derivative(U, s)))

@@ -2,7 +2,7 @@ using NonlinearSolve
 
 function ξ(ρ::Vector{T}, problem::ADEProblem, mesh::MeshADE) where {T<:Number}
     ξ = zeros(T, size(ρ))
-    if !(isnothing(problem.U))
+    if !(isnothing(problem.Uprime))
         ξ += problem.Uprime.(ρ)
     end
     if !(isnothing(problem.V))
@@ -41,7 +41,11 @@ function F(ρ::Vector{T}, v, problem::ADEProblem, mesh::MeshADE) where {T<:Numbe
     Nh = length(mesh.Ih)
     d = dimension(mesh)
     F = Matrix{T}(undef, Nh, d)
-    mobupwind(a, b) = max(problem.mobup(a) * problem.mobdown(b), 0.0)
+    mobupwind(a, b) =
+        max(
+            problem.mobup(a) * problem.mobdown(b),
+            0.0
+        )
     for p in eachindex(mesh.Ih)
         for k = 1:d
             q = mesh.neighbours_plus[p, k] #i_q = i_p + e_k

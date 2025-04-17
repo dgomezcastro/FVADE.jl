@@ -20,7 +20,7 @@ mutable struct MeshADE
     const Ih::Vector{Vector{Int64}}
     const neighbours_plus::Matrix{Union{Int64,Nothing}}
     const neighbours_minus::Matrix{Union{Int64,Nothing}}
-    VV::Vector
+    VV::Union{Vector,Nothing}
     KK::Union{Matrix,Nothing}
     plotting_object::Union{MeshADEPlotData,Nothing}
 end
@@ -98,8 +98,8 @@ function initialize_VV_WW(h, Ih, V, K)
     if isnothing(K)
         KK = nothing
     else
+        KK = Matrix{Float64}(undef, Nh, Nh)
         for (p, i) in enumerate(Ih)
-            KK = Matrix{Float64}(undef, Nh, Nh)
             for (q, j) in enumerate(Ih)
                 KK[p, q] = h^d * K(x(i, h), x(j, h))
             end
