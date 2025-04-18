@@ -1,8 +1,10 @@
 using ProgressMeter
 import FVADE
 using Plots, LaTeXStrings, Plots.Measures
+using JLD2
 
-ρ0(x) = 0.6
+ρ0_value = 0.6
+ρ0(x) = ρ0_value
 
 is_in_Omega(x) = (-4 < x[1] < 4 && -4 < x[2] < 4)
 limits = [(-20, 20), (-20, 20)]
@@ -52,22 +54,24 @@ function solve(h)
     return mesh.Ih, ρ
 end
 
-hs = 2.0 .^ collect(-2:-1:-5)
+hs = 2.0 .^ collect(-1:-1:-4)
 L1errors = Vector(undef, length(hs))
-k = 1
-@show (k / length(hs))
 Ihhalf, ρhhalf = solve(hs[1])
 for (k, h) in enumerate(hs)
-    @show (k / length(hs))
+    @show ((k - 1) / (length(hs) - 1))
     Ih, ρh = Ihhalf, ρhhalf
     τ = h^exponent_of_tau
 
-    Ihhalf, ρhhalf = solve(h / 2)
+    global Ihhalf, ρhhalf = solve(h / 2)
 
     meshmapper = [findfirst(==(2 * i), Ihhalf) for i in Ih]
 
     L1errors[k] = τ * h^d * sum(abs.(ρhhalf[1:2^exponent_of_tau:end, meshmapper] - ρh))
+    @show h, L1errors[k]
 end
+
+title = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = |x|^2, K = 0, \\rho_0 = $(ρ0_value)") *
+        "\n" * latexstring("\\Omega = [-4,4]^2, T = 1, τ = h^{$exponent_of_tau}")
 
 plot(hs, L1errors,
     scale=:log10,
@@ -75,10 +79,11 @@ plot(hs, L1errors,
     xlabel=L"h",
     ylabel=L"||ρ_h - ρ_{h / 2}||_{L^2( (0,T) \times \Omega )}",
     label="",
-    title=latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = |x|^2/2, K = 0, \\rho_0 = $(ρ_0([0,0]))") *
-          "\n" * latexstring("\\Omega = [-4,4]^2, T = 1, τ = h^{$exponent_of_tau}"),
+    title=title,
     size=(700, 300),
     topmargin=10mm
 )
 
 savefig("figures/convergence.pdf")
+
+save("figures/convergence.jld2", Dict("title" => title, "hs" => hs, "L1errors" => L1errors))
