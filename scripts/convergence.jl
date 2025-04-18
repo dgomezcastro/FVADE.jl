@@ -6,8 +6,13 @@ using JLD2
 ρ0_value = 0.6
 ρ0(x) = ρ0_value
 
-is_in_Omega(x) = (-4 < x[1] < 4 && -4 < x[2] < 4)
-limits = [(-20, 20), (-20, 20)]
+# is_in_Omega(x) = (-4 < x[1] < 4 && -4 < x[2] < 4)
+# limits = [(-20, 20), (-20, 20)]
+
+is_in_Omega(x) = (-4 < x[1] < 4)
+limits = [(-20, 20)]
+d = length(limits)
+
 m = 2
 problem = FVADE.ADEProblem(
     U=s -> s^m / (m - 1),
@@ -54,7 +59,7 @@ function solve(h)
     return mesh.Ih, ρ
 end
 
-hs = 2.0 .^ collect(-1:-1:-4)
+hs = 2.0 .^ collect(-1:-1:-6)
 L1errors = Vector(undef, length(hs))
 Ihhalf, ρhhalf = solve(hs[1])
 for (k, h) in enumerate(hs)
@@ -71,19 +76,22 @@ for (k, h) in enumerate(hs)
 end
 
 title = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = |x|^2, K = 0, \\rho_0 = $(ρ0_value)") *
-        "\n" * latexstring("\\Omega = [-4,4]^2, T = 1, τ = h^{$exponent_of_tau}")
+        "\n" * latexstring("\\Omega = [-4,4]^$d, T = 1, τ = h^{$exponent_of_tau}")
 
 plot(hs, L1errors,
     scale=:log10,
     marker=:circle,
     xlabel=L"h",
-    ylabel=L"||ρ_h - ρ_{h / 2}||_{L^2( (0,T) \times \Omega )}",
-    label="",
+    ylabel=L"ε_h := ||ρ_h - ρ_{h / 2}||_{L^2( (0,T) \times \Omega )}",
+    label="Simulation",
     title=title,
-    size=(700, 300),
-    topmargin=10mm
+    size=(700, 400),
+    topmargin=10mm,
+    bottommargin=5mm,
+    leftmargin=5mm
 )
+plot!(hs, hs, label=L"Linear scaling $\varepsilon_h = h$")
 
-savefig("figures/convergence.pdf")
+savefig("figures/convergence-d$d.pdf")
 
-save("figures/convergence.jld2", Dict("title" => title, "hs" => hs, "L1errors" => L1errors))
+save("figures/convergence-d$d.jld2", Dict("title" => title, "hs" => hs, "L1errors" => L1errors))
