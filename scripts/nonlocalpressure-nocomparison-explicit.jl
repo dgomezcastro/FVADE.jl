@@ -7,13 +7,13 @@ using LinearAlgebra
 h = 2^-2
 @show h
 
-is_in_Omega(x) = (abs(x[1]) < 6 && abs(x[2]) < 5)
+is_in_Omega(x) = (abs(x[1]) < 7 && abs(x[2]) < 7)
 limits = [(-10, 10), (-10, 10)]
 m = 3
 d = length(limits)
 s = 0.5
 problem = FVADE.ADEProblem(
-    K=(x, y) -> (x == y ? 0.0 : norm(x - y)^(-2 + 2 * s)),
+    K=(x, y) -> (max(h, norm(x - y)))^(-2 + 2 * s),
     mobup=ρ -> ρ^(m - 1)
 )
 println("Meshing")
@@ -32,14 +32,14 @@ bump(x, x0, r) = max(r^2 - norm(x - x0)^2, 0.0) / r^2
 ρ01(x) = bump(x, [1.0, 0.0], 1.0)
 ρ02(x) =
     ρ01(x) +
-    2.0 * bump(x, [-1.0, 0.0], 1.0)
+    2.0 * bump(x, [-2.0, 0.0], 1.0)
 
 ρ1 = [Float64(ρ01(FVADE.x(i, h))) for i in mesh.Ih]
 ρ2 = [Float64(ρ02(FVADE.x(i, h))) for i in mesh.Ih]
-τ = h^2
+τ = h^3
 @show τ
 
-T = 0.5
+T = 5.0
 N = ceil(Int64, T / τ)
 
 println("Solving")
@@ -52,9 +52,9 @@ anim = @animate for n in 1:N+1
     p2 = FVADE.plot_2d(ρ2, mesh)
     zlims!(p2, 0, M)
     zlabel!(p2, "ρ2")
-    p3 = FVADE.plot_2d(ρ2 - ρ1, mesh, alpha=0.75)
+    p3 = FVADE.plot_2d((ρ2 - ρ1) / maximum(abs.(ρ2 - ρ1)), mesh, alpha=0.75)
     zlims!(p3, -M, M)
-    zlabel!(p3, "ρ2 - ρ1")
+    zlabel!(p3, "(ρ2 - ρ1)/||ρ2-ρ1||_∞")
 
     p4 = plot(p1, p2, p3,
         plot_title="t=$(round((n-1)*τ,digits=3)). Explicit",
