@@ -22,7 +22,6 @@ mesh = FVADE.MeshADE(
     h=h,
     mesh_limits=limits
 )
-show(maximum(mesh.VV))
 
 println("size Ih = ", length(mesh.Ih))
 
