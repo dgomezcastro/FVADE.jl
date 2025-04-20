@@ -1,6 +1,6 @@
 using ProgressMeter
 import FVADE
-using Plots
+using Plots, LaTeXStrings
 
 ρ0(x) = 0.6
 is_in_Omega(x) = (-4 < x[1] < 4 && -4 < x[2] < 4)
@@ -27,14 +27,6 @@ println("size Ih = ", length(mesh.Ih))
 
 # ENV["JULIA_DEBUG"] = all
 
-
-# ρ0(x) = max((m - 1) / m * (1.0 - V(x)), 0.0)^(m - 1)
-
-# σ = 2^-1
-# ρ0(x) = min(4.0 / σ^(FVADE.dimension(mesh)) * exp(-sum(x .^ 2) / σ), 1.0)
-
-# ρ0(x) = 1.0
-
 ρ = [Float64(ρ0(FVADE.x(i, h))) for i in mesh.Ih]
 τ = h^2
 @show τ
@@ -59,5 +51,9 @@ anim = @animate for n in 1:N
 
     next!(p)
 end
-savefig("figures/pme-squre-satuaration.pdf")
 mp4(anim, "figures/pme-square-saturation.mp4")
+
+thetitle = L"U=s^2, V=|x|^2/2, K=0, \rho_0 = 0.6" * "\n" * latexstring("h=$h, τ=h^2, t=$T")
+theplot = FVADE.plot_2d(ρ, mesh)
+title!(thetitle)
+savefig("figures/pme-square-saturation.pdf")

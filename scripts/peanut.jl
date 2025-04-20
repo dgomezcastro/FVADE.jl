@@ -1,6 +1,6 @@
 using ProgressMeter
 import FVADE
-using Plots
+using Plots, LaTeXStrings
 
 
 m = 2
@@ -55,3 +55,8 @@ theplot = FVADE.plot_2d(ρ, mesh)
 frame(anim, theplot)
 
 mp4(anim, "figures/pme-peanut-saturation.mp4")
+
+thetitle = L"U=s^2, V=|x|^2/2, K=0, \rho_0 = 0.6" * "\n" * latexstring("h=$h, τ=h^2, t=$T")
+theplot = FVADE.plot_2d(ρ, mesh)
+title!(thetitle)
+savefig("figures/pme-peanut-saturation.pdf")
