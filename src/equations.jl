@@ -1,15 +1,15 @@
-using NonlinearSolve
+using LinearAlgebra
 
-function ξ(ρ::Vector{T}, problem::ADEProblem, mesh::MeshADE) where {T<:Number}
-    ξ = zeros(T, size(ρ))
+function ξ(ρ_next::Vector{T}, ρ_prev, problem::ADEProblem, mesh::MeshADE) where {T<:Number}
+    ξ = zeros(T, size(ρ_next))
     if !(isnothing(problem.Uprime))
-        ξ += problem.Uprime.(ρ)
+        ξ += problem.Uprime.(max.(ρ_next, 0.0))
     end
     if !(isnothing(problem.V))
         ξ += mesh.VV
     end
     if !(isnothing(problem.K))
-        ξ += mesh.KK * ρ
+        ξ += mesh.KK * (ρ_next + ρ_prev) / 2
     end
     return ξ
 end

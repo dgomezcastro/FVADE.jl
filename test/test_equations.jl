@@ -8,7 +8,7 @@
         h=h,
         mesh_limits=limits)
     ρ = zeros(length(mesh.Ih))
-    ξ = FVADE.ξ(ρ, problem, mesh)
+    ξ = FVADE.ξ(ρ, ρ, problem, mesh)
     @test ξ == zeros(length(mesh.Ih))
     v = FVADE.v(ξ, mesh)
     @test v == zeros(length(mesh.Ih), FVADE.dimension(mesh))
@@ -25,14 +25,21 @@ end
     h = 2^-2
     is_in_Omega(x) = minimum(-1 .< x .< 1)
     limits = [(-1.0, 1.0)]
-    problem = FVADE.ADEProblem(U=s -> 0.0, V=x -> sum(x .^ 2) / 2, K=nothing, Uprime=s -> 0.0)
-    mesh = FVADE.MeshADE(problem=problem,
+    problem = FVADE.ADEProblem(
+        U=s -> 0.0,
+        Uprime=s -> 0.0,
+        V=x -> sum(x .^ 2) / 2,
+        K=nothing,
+    )
+    mesh = FVADE.MeshADE(
+        problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,
-        mesh_limits=limits)
+        mesh_limits=limits
+    )
     @test mesh.Ih == [[-3], [-2], [-1], [0], [1], [2], [3]]
     ρ = zeros(length(mesh.Ih))
-    ξ = FVADE.ξ(ρ, problem, mesh)
+    ξ = FVADE.ξ(ρ, ρ, problem, mesh)
     @test ξ ≈ [0.28125, 0.125, 0.03125, 0.0, 0.03125, 0.125, 0.28125]
     v = FVADE.v(ξ, mesh)
     @test v ≈ [0.625; 0.375; 0.125; -0.125; -0.375; -0.625; 0.0;;]
