@@ -79,16 +79,16 @@ function L(F::Matrix{T}, mesh, τ) where {T<:Number}
     return (τ / mesh.h) * dρ
 end
 
-function implicit_problem(ρ, ρ_prev, F, problem, mesh, τ)
-    ξ_ρ = ξ(ρ, problem, mesh)
+function implicit_problem(ρ_next, ρ_prev, problem, mesh, τ)
+    ξ_ρ = ξ(ρ_next, ρ_prev, problem, mesh)
     v_ρ = v(ξ_ρ, mesh)
-    F_ρ = F(ρ, v_ρ, problem, mesh)
+    F_ρ = F(ρ_next, v_ρ, problem, mesh)
     L_ρ = L(F_ρ, mesh, τ)
-    return ρ + L_ρ - ρ_prev
+    return ρ_next + L_ρ - ρ_prev
 end
 
 function iterate(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Number; abs_tol=1e-3, max_iters=100)
-    G(ρ) = implicit_problem(ρ, ρ_prev, F, problem, mesh, τ)
+    G(ρ) = implicit_problem(ρ, ρ_prev, problem, mesh, τ)
     ρ_next = Newton(G, ρ_prev; abs_tol=abs_tol, max_iters=max_iters)
     # Newton solve may break positivity and mass conservation
     ρ_next = max.(ρ_next, 0.0)
@@ -114,4 +114,20 @@ function iterate_explicit(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Numbe
         ρ_next = ρ_next / sum(ρ_next) * sum(ρ_prev)
     end
     return ρ_next
+end
+
+function free_energy(ρ, problem, mesh)
+    d = dimension(mesh)
+    h = mesh.h
+    free_energy = 0.0
+    if !isnothing(problem.U)
+        free_energy += h^d * sum(problem.U.(ρ))
+    end
+    if !isnothing(problem.V)
+        free_energy += dot(mesh.VV, ρ)
+    end
+    if !isnothing(problem.K)
+        free_energy += 0.5 * h^d * dot(ρ, (mesh.KK) * ρ)
+    end
+    return free_energy
 end

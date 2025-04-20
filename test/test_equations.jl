@@ -49,3 +49,22 @@ end
     L = FVADE.L(F, mesh, τ)
     @test L ≈ [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 end
+
+@testset "free energy" begin
+    is_in_Omega(x) = minimum(-1 .< x .< 1)
+    limits = [(-1.0, 1.0)]
+    problem = FVADE.ADEProblem(
+        U=s -> 0.0,
+        Uprime=s -> 0.0,
+        V=x -> sum(x .^ 2) / 2,
+        K=nothing,
+    )
+    h = 2e-2
+    mesh = FVADE.MeshADE(
+        problem=problem,
+        is_in_Omega=is_in_Omega,
+        h=h,
+        mesh_limits=limits
+    )
+    @test FVADE.free_energy(zeros(length(mesh.Ih)), problem, mesh) == 0.0
+end
