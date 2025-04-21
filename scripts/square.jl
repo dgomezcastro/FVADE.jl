@@ -6,6 +6,10 @@ using Plots, LaTeXStrings
 is_in_Omega(x) = (-4 < x[1] < 4 && -4 < x[2] < 4)
 
 h = 2^-3
+τ = h^2
+@show h, τ
+
+T = 2.0
 limits = [(-20, 20), (-20, 20)]
 m = 2
 problem = FVADE.ADEProblem(
@@ -28,10 +32,6 @@ println("size Ih = ", length(mesh.Ih))
 # ENV["JULIA_DEBUG"] = all
 
 ρ = [Float64(ρ0(FVADE.x(i, h))) for i in mesh.Ih]
-τ = h^2
-@show τ
-
-T = 1.0
 N = ceil(Int64, T / τ) + 1
 
 # N = 30
@@ -47,7 +47,6 @@ anim = @animate for n in 1:N
     global ρ = FVADE.iterate(
         ρ, problem, mesh, τ; abs_tol=1e-8, max_iters=20
     )
-    # println("\n sum(ρ)=", sum(ρ))
 
     next!(p)
 end
