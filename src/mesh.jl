@@ -41,21 +41,15 @@ end
 
 function generate_Ih(is_in_Omega::Function, h::Real, mesh_limits::Vector)::Vector{Vector{Int64}}
     d = length(mesh_limits)
-    cube_zip = floor(Int64, mesh_limits[1][1] / h):ceil(Int64, mesh_limits[1][2] / h)
-    for k in 2:d
-        cube_zip = Iterators.product(cube_zip, floor(Int64, mesh_limits[k][1] / h):ceil(Int64, mesh_limits[k][2] / h))
-    end
-    Ih = Vector{Vector{Int64}}()
-    for i in cube_zip
-        if typeof(i) <: Number
-            i_vector = [i]
-        else
-            i_vector = collect(i)
+    if d == 1
+        range = floor(Int64, mesh_limits[1][1] / h):ceil(Int64, mesh_limits[1][2] / h)
+        Ih = [[i] for i in range if is_in_Omega(x([i], h))]
+    else
+        cube_zip = floor(Int64, mesh_limits[1][1] / h):ceil(Int64, mesh_limits[1][2] / h)
+        for k in 2:d
+            cube_zip = Iterators.product(cube_zip, floor(Int64, mesh_limits[k][1] / h):ceil(Int64, mesh_limits[k][2] / h))
         end
-        x_i = x(i_vector, h)
-        if is_in_Omega(x_i)
-            append!(Ih, [i_vector])
-        end
+        Ih = [collect(i) for i in cube_zip if is_in_Omega(x(collect(i), h))]
     end
     return Ih
 end

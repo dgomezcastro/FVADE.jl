@@ -14,6 +14,13 @@
         Ih = FVADE.generate_Ih(is_in_Omega, h, limits)
         @test Ih == [[0, -1], [-1, 0], [0, 0], [1, 0], [0, 1]]
     end
+    @testset "d=1" begin
+        h = 1
+        is_in_Omega(x) = (-1 < x[1] < 1)
+        limits = [(-1, 1)]
+        Ih = FVADE.generate_Ih(is_in_Omega, h, limits)
+        @test Ih == [[0]]
+    end
 end
 
 @testset "Generate Mesh" begin
