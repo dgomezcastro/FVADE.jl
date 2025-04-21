@@ -15,13 +15,15 @@ Mesh for ADE
 
 abstract type MeshADEPlotData end
 
+using LinearAlgebra
+
 mutable struct MeshADE
     const h::Float64
     const Ih::Vector{Vector{Int64}}
     const neighbours_plus::Matrix{Union{Int64,Nothing}}
     const neighbours_minus::Matrix{Union{Int64,Nothing}}
     VV::Union{Vector,Nothing}
-    KK::Union{Matrix,Nothing}
+    KK::Union{Symmetric{Float64,Matrix{Float64}},Nothing}
     plotting_object::Union{MeshADEPlotData,Nothing}
 end
 function MeshADE(; problem::ADEProblem, is_in_Omega, h, mesh_limits)
@@ -92,12 +94,7 @@ function initialize_VV_WW(h, Ih, V, K)
     if isnothing(K)
         KK = nothing
     else
-        KK = Matrix{Float64}(undef, Nh, Nh)
-        for (p, i) in enumerate(Ih)
-            for (q, j) in enumerate(Ih)
-                KK[p, q] = h^d * K(x(i, h), x(j, h))
-            end
-        end
+        KK = Symmetric([h^d * K(x(i, h), x(j, h)) for i in Ih, j in Ih])
     end
     return VV, KK
 end
