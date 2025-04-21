@@ -124,7 +124,7 @@ function free_energy(ρ, problem, mesh)
         free_energy += h^d * sum(problem.U.(ρ))
     end
     if !isnothing(problem.V)
-        free_energy += dot(mesh.VV, ρ)
+        free_energy += h^d * dot(mesh.VV, ρ)
     end
     if !isnothing(problem.K)
         free_energy += 0.5 * h^d * dot(ρ, (mesh.KK) * ρ)
