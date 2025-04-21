@@ -34,7 +34,8 @@ function vector_to_matrix(ρ, mesh::MeshADE)
 
     i1s = mesh.plotting_object.i1s
     i2s = mesh.plotting_object.i2s
-    ρ_matrix = zeros(length(i1s), length(i2s))
+    ρ_matrix = Matrix(undef, length(i1s), length(i2s))
+    ρ_matrix .= Float64(NaN)
     for (p1, i1) in enumerate(i1s)
         for (p2, i2) in enumerate(i2s)
             q = findfirst(==([i1, i2]), mesh.Ih)
