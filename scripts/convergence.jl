@@ -1,40 +1,40 @@
-using ProgressMeter
 import FVADE
+using ProgressMeter
 using Plots, LaTeXStrings, Plots.Measures
+using LinearAlgebra
 using JLD2
 
-ρ0_value = 0.6
-ρ0(x) = ρ0_value
+# ρ0(x) = 0.6
+# ρ0_text = latexstring("$(ρ0(0.0))")
 
-# is_in_Omega(x) = (-4 < x[1] < 4 && -4 < x[2] < 4)
-# limits = [(-20, 20), (-20, 20)]
+ρ0(x) = min(2.0 * exp(-norm(x / 0.5)^2), 1.0)
+ρ0_text = L"min\{ 2 e^{-|x/0.5|^2}, 1 \}"
 
-is_in_Omega(x) = (-4 < x[1] < 4)
-limits = [(-20, 20)]
+## d=1
+# is_in_Omega(x) = (-4 < x[1] < 4)
+# limits = [(-20, 20)]
+
+## d=2
+is_in_Omega(x) = (-1 < x[1] < 1 && -1 < x[2] < 1)
+limits = [(-20, 20), (-20, 20)]
+
+exponent_of_tau::Integer = 2
+hs = 2.0 .^ collect(-2:-1:-5)
+
 d = length(limits)
 
 m = 2
 problem = FVADE.ADEProblem(
     U=s -> s^m / (m - 1),
     Uprime=s -> m / (m - 1) * s^(m - 1),
-    V=x -> sum(x .^ 2),
+    # V=x -> sum(x .^ 2),
+    V=nothing,
     K=nothing,
     mobup=s -> s,
     mobdown=s -> (1 - s)
 )
 
-d = length(limits)
-exponent_of_tau::Integer = 2
-
-problem = FVADE.ADEProblem(
-    U=s -> s^2,
-    Uprime=s -> 2 * s,
-    V=x -> sum(x .^ 2) / 2,
-    K=nothing,
-    mobup=s -> s,
-    mobdown=s -> (1 - s)
-)
-T = 1.0
+T = 0.5
 
 function solve(h)
     mesh = FVADE.MeshADE(
@@ -59,7 +59,6 @@ function solve(h)
     return mesh.Ih, ρ
 end
 
-hs = 2.0 .^ collect(-1:-1:-6)
 L1errors = Vector(undef, length(hs))
 Ihhalf, ρhhalf = solve(hs[1])
 for (k, h) in enumerate(hs)
@@ -75,7 +74,7 @@ for (k, h) in enumerate(hs)
     @show h, L1errors[k]
 end
 
-title = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = |x|^2, K = 0, \\rho_0 = $(ρ0_value)") *
+title = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = |x|^2, K = 0, \\rho_0 = ") * ρ0_text *
         "\n" * latexstring("\\Omega = [-4,4]^$d, T = 1, τ = h^{$exponent_of_tau}")
 
 plot(hs, L1errors,
