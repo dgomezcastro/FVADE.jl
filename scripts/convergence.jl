@@ -33,6 +33,8 @@ problem = FVADE.ADEProblem(
     mobup=s -> s,
     mobdown=s -> (1 - s)
 )
+title = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = 0, K = 0, \\rho_0 = ") * ρ0_text *
+        "\n" * latexstring("\\Omega = [-4,4]^$d, T = 1, τ = h^{$exponent_of_tau}")
 
 T = 0.5
 
@@ -74,8 +76,6 @@ for (k, h) in enumerate(hs)
     @show h, L1errors[k]
 end
 
-title = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = |x|^2, K = 0, \\rho_0 = ") * ρ0_text *
-        "\n" * latexstring("\\Omega = [-4,4]^$d, T = 1, τ = h^{$exponent_of_tau}")
 
 plot(hs, L1errors,
     scale=:log10,
