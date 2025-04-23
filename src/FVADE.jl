@@ -25,6 +25,8 @@ include("mesh.jl")
 include("solver.jl")
 include("equations.jl")
 
+include("Barenblatt.jl")
+
 include("plot_2d.jl")
 
 end # module FVADE

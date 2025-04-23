@@ -9,3 +9,5 @@ include("test_equations.jl")
 include("test_pme.jl")
 
 include("test_solver.jl")
+
+include("test_Barenblatt.jl")
