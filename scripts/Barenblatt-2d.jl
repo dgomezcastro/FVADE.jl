@@ -28,7 +28,7 @@ problem = FVADE.ADEProblem(
     V=nothing,
     K=nothing,
     mobup=s -> s,
-    mobdown=s -> (1 - s)
+    mobdown=s -> 1
 )
 println("Meshing")
 mesh = FVADE.MeshADE(
