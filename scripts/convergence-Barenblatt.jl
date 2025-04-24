@@ -26,7 +26,7 @@ t0 = 1.0
 ρ0(x) = FVADE.evaluate(B, x, t0)
 ρ_exact(x::Vector, t::Number) = FVADE.evaluate(B, x, t + t0)
 ρ_exact(x::Number, t::Number) = FVADE.evaluate(B, [x], t + t0)
-ρ0_text = "Barenblatt"
+ρ0_text = "Barenblatt mass=$mass, t0=$t0"
 
 exponent_of_tau::Integer = 2
 
