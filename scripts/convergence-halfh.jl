@@ -33,8 +33,8 @@ problem = FVADE.ADEProblem(
     mobup=s -> s,
     mobdown=s -> (1 - s)
 )
-title = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = 0, K = 0, \\rho_0 = ") * ρ0_text *
-        "\n" * latexstring("\\Omega = [-4,4]^$d, T = 1, τ = h^{$exponent_of_tau}")
+plottitle = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = 0, K = 0, \\rho_0 = ") * ρ0_text *
+            "\n" * latexstring("\\Omega = [-4,4]^$d, T = 1, τ = h^{$exponent_of_tau}")
 
 T = 0.5
 
@@ -81,9 +81,9 @@ plot(hs, L1errors,
     scale=:log10,
     marker=:circle,
     xlabel=L"h",
-    ylabel=L"ε_h := ||ρ_h - ρ_{h / 2}||_{L^1( (0,T) \times \Omega )}",
+    ylabel=L"ε_h^{(2)}",
     label="Simulation",
-    title=title,
+    title=plottitle,
     size=(700, 400),
     topmargin=10mm,
     bottommargin=5mm,
@@ -93,4 +93,4 @@ plot!(hs, hs, label=L"Linear scaling $\varepsilon_h = h$")
 
 savefig("figures/convergence-d$d.pdf")
 
-save("figures/convergence-d$d.jld2", Dict("title" => title, "hs" => hs, "L1errors" => L1errors))
+save("figures/convergence-d$d.jld2", Dict("title" => plottitle, "hs" => hs, "L1errors" => L1errors))

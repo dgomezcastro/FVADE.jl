@@ -100,4 +100,4 @@ plot!(hs, hs, label=L"Linear scaling $\varepsilon_h = h$")
 
 savefig("figures/$title.pdf")
 
-save("figures/$title.jld2", Dict("title" => title, "hs" => hs, "L1errors" => L1errors))
+save("figures/$title.jld2", Dict("plottitle" => plottitle, "hs" => hs, "L1errors" => L1errors))
