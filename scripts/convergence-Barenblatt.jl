@@ -20,7 +20,7 @@ d = length(limits)
 title = "convergence-Barenblatt-$(d)d"
 m = 2
 mass = 2.0
-B = FVADE.Barenblatt(m=Float64(m), dimension=d, mass=mass)
+B = FVADE.BarenblattPME(m=Float64(m), dimension=d, mass=mass)
 
 t0 = 1.0
 ρ0(x) = FVADE.evaluate(B, x, t0)

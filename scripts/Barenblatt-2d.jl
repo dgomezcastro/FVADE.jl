@@ -6,7 +6,7 @@ using LinearAlgebra
 title = "Barenblatt-2d"
 
 m = 2
-B = FVADE.Barenblatt(m=2.0, dimension=2, mass=3.0)
+B = FVADE.BarenblattPME(m=2.0, dimension=2, mass=3.0)
 
 t0 = 1e-1
 ρ0(x) = FVADE.evaluate(B, x, t0)
