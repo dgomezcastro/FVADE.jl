@@ -4,37 +4,39 @@ using Plots, LaTeXStrings, Plots.Measures
 using LinearAlgebra
 using JLD2
 
-# ρ0(x) = 0.6
-# ρ0_text = latexstring("$(ρ0(0.0))")
+ρ0(x) = 0.6
+ρ0_text = latexstring("$(ρ0(0.0))")
 
-ρ0(x) = min(2.0 * exp(-norm(x / 0.5)^2), 1.0)
-ρ0_text = L"min\{ 2 e^{-|x/0.5|^2}, 1 \}"
+# ρ0(x) = min(2.0 * exp(-norm(x / 0.5)^2), 1.0)
+# ρ0_text = L"min\{ 2 e^{-|x/0.5|^2}, 1 \}"
 
-## d=1
-# is_in_Omega(x) = (-4 < x[1] < 4)
-# limits = [(-20, 20)]
+d = 1
+if d == 1
+    L = 4
+    is_in_Omega(x) = (-L < x[1] < L)
+    limits = [(-L, L)]
+    exponent_of_tau::Integer = 2
+    hs = 2.0 .^ collect(-2:-1:-6)
+elseif d == 2
+    L = 1
+    is_in_Omega(x) = (-L < x[1] < L && -L < x[2] < L)
+    limits = [(-L, L), (-L, L)]
+    exponent_of_tau::Integer = 2
+    hs = 2.0 .^ collect(-2:-1:-5)
+end
 
-## d=2
-is_in_Omega(x) = (-1 < x[1] < 1 && -1 < x[2] < 1)
-limits = [(-20, 20), (-20, 20)]
-
-exponent_of_tau::Integer = 2
-hs = 2.0 .^ collect(-2:-1:-5)
-
-d = length(limits)
 
 m = 2
 problem = FVADE.ADEProblem(
     U=s -> s^m / (m - 1),
     Uprime=s -> m / (m - 1) * s^(m - 1),
-    # V=x -> sum(x .^ 2),
-    V=nothing,
+    V=x -> norm(x)^2,
     K=nothing,
     mobup=s -> s,
     mobdown=s -> (1 - s)
 )
 plottitle = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = 0, K = 0, \\rho_0 = ") * ρ0_text *
-            "\n" * latexstring("\\Omega = [-4,4]^$d, T = 1, τ = h^{$exponent_of_tau}")
+            "\n" * latexstring("\\Omega = [-$L,$L]^$d, T = 1, τ = h^{$exponent_of_tau}")
 
 T = 0.5
 
@@ -91,6 +93,6 @@ plot(hs, L1errors,
 )
 plot!(hs, hs, label=L"Linear scaling $\varepsilon_h = h$")
 
-savefig("figures/convergence-d$d.pdf")
+savefig("figures/convergence-hhalf-d$d.pdf")
 
-save("figures/convergence-d$d.jld2", Dict("title" => plottitle, "hs" => hs, "L1errors" => L1errors))
+save("figures/convergence-hhalf-d$d.jld2", Dict("plottitle" => plottitle, "hs" => hs, "L1errors" => L1errors))

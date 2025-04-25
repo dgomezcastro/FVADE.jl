@@ -6,17 +6,18 @@ using JLD2
 
 L = 4
 
-## d=1
-# is_in_Omega(x) = (-L < x[1] < L)
-# limits = [(-L, L)]
-# hs = 2.0 .^ (-2:-0.5:-5)
+d = 2
 
-## d=2
-is_in_Omega(x) = (-L < x[1] < L && -L < x[2] < L)
-limits = [(-L, L), (-L, L)]
-hs = 2.0 .^ (-2:-0.5:-4)
+if d == 1
+    is_in_Omega(x) = (-L < x[1] < L)
+    limits = [(-L, L)]
+    hs = 2.0 .^ (-2:-0.5:-5)
+elseif d == 2
+    is_in_Omega(x) = (-L < x[1] < L && -L < x[2] < L)
+    limits = [(-L, L), (-L, L)]
+    hs = 2.0 .^ (-2:-0.5:-4)
+end
 
-d = length(limits)
 title = "convergence-Barenblatt-$(d)d"
 m = 2
 mass = 2.0
@@ -26,7 +27,7 @@ t0 = 1.0
 ρ0(x) = FVADE.evaluate(B, x, t0)
 ρ_exact(x::Vector, t::Number) = FVADE.evaluate(B, x, t + t0)
 ρ_exact(x::Number, t::Number) = FVADE.evaluate(B, [x], t + t0)
-ρ0_text = "Barenblatt mass=$mass, t0=$t0"
+ρ0_text = latexstring("\$\\textrm{Barenblatt}(M=$mass, t_0=$t0)\$")
 
 exponent_of_tau::Integer = 2
 
@@ -42,8 +43,6 @@ problem = FVADE.ADEProblem(
     mobdown=s -> 1
 )
 
-plottitle = latexstring("\\mathrm{m} = \\rho, U=\\rho^$m, V = 0, K = 0, \\rho_0 = ") * ρ0_text *
-            "\n" * latexstring("\\Omega = [-$L,$L]^$(d), T = $T, τ = h^{$exponent_of_tau}")
 
 
 function solve(h)
@@ -83,6 +82,8 @@ for (k, h) in enumerate(hs)
     @show h, L1errors[k]
 end
 
+plottitle = latexstring("\\mathrm{m} = \\rho, U=\\rho^$m, V = 0, K = 0, \\rho_0 = ") * ρ0_text *
+            "\n" * latexstring("\\Omega = [-$L,$L]^$(d), T = $T, τ = h^{$exponent_of_tau}")
 
 plot(hs, L1errors,
     scale=:log10,

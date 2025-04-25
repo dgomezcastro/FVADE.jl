@@ -15,15 +15,6 @@ problem = FVADE.ADEProblem(
     V=V,
     K=nothing
 )
-println("Meshing")
-mesh = FVADE.MeshADE(
-    problem=problem,
-    is_in_Omega=is_in_Omega,
-    h=h,
-    mesh_limits=limits
-)
-
-println("size Ih = ", length(mesh.Ih))
 
 # ENV["JULIA_DEBUG"] = all
 
