@@ -25,17 +25,16 @@ function BarenblattPME(; m, dimension, mass)
     k = β * (m - 1) / (2 * m)
     basicBarenblattPME = BarenblattPME{Float64}(m, N, 1.0, α, β, k)
     surfaceArea = 2 * π^(N / 2) / gamma(N / 2)
-    integrand(r) = N * surfaceArea * evaluate_radial(basicBarenblattPME, r, 1) * r^(N - 1)
+    integrand(r) = N * surfaceArea * basicBarenblattPME(r, 1) * r^(N - 1)
     D = quadgk(integrand, 0, Inf, rtol=1e-10)[1]
     C = (mass / D)^(1 / (1 / (m - 1) + 1 / 2))
     return BarenblattPME(m, N, C, α, β, k)
 end
 
-function evaluate_radial(B::BarenblattPME, r::Number, t)
+function (B::BarenblattPME)(r::Number, t::Number)
     return t^(-B.α) * max(B.C - B.k * r^2 / t^(2 * B.β), 0.0)^(1 / (B.m - 1))
 end
 
-function evaluate(B::BarenblattPME, x::Vector, t)
-    return evaluate_radial(B, norm(x), t)
+function (B::BarenblattPME)(x::Vector, t::Number)
+    return B(norm(x), t)
 end
-

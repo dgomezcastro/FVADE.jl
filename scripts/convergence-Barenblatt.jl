@@ -24,9 +24,8 @@ mass = 2.0
 B = FVADE.BarenblattPME(m=Float64(m), dimension=d, mass=mass)
 
 t0 = 1.0
-ρ0(x) = FVADE.evaluate(B, x, t0)
-ρ_exact(x::Vector, t::Number) = FVADE.evaluate(B, x, t + t0)
-ρ_exact(x::Number, t::Number) = FVADE.evaluate(B, [x], t + t0)
+ρ0(x) = B(x, t0)
+ρ_exact(x, t) = B(x, t + t0)
 ρ0_text = latexstring("\$\\textrm{Barenblatt}(M=$mass, t_0=$t0)\$")
 
 exponent_of_tau::Integer = 2
