@@ -18,15 +18,19 @@ struct BarenblattPME{T}
     β::T
     k::T
 end
+
 function BarenblattPME(; m, dimension, mass)
     N = dimension
     β = 1 / (2 + N * (m - 1))
     α = β * N
     k = β * (m - 1) / (2 * m)
+
+    # TODO: Value of D can be made explicit
     basicBarenblattPME = BarenblattPME{Float64}(m, N, 1.0, α, β, k)
     surfaceArea = 2 * π^(N / 2) / gamma(N / 2)
     integrand(r) = N * surfaceArea * basicBarenblattPME(r, 1) * r^(N - 1)
     D = quadgk(integrand, 0, Inf, rtol=1e-10)[1]
+
     C = (mass / D)^(1 / (1 / (m - 1) + 1 / 2))
     return BarenblattPME(m, N, C, α, β, k)
 end
@@ -36,5 +40,9 @@ function (B::BarenblattPME)(r::Number, t::Number)
 end
 
 function (B::BarenblattPME)(x::Vector, t::Number)
-    return B(norm(x), t)
+    if length(x) == BarenblattPME.N
+        return B(norm(x), t)
+    else
+        error("Dimension of the Barenblatt and length of vector do not match")
+    end
 end
