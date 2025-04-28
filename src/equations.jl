@@ -1,6 +1,6 @@
 using LinearAlgebra
 
-function ξ(ρ_next::Vector{T}, ρ_prev, problem::ADEProblem, mesh::MeshADE) where {T<:Number}
+function ξ(ρ_next::Vector{T}, ρ_prev, problem::ADEProblem, mesh::UniformMeshADE) where {T<:Number}
     ξ = zeros(T, size(ρ_next))
     if !(isnothing(problem.Uprime))
         ξ += problem.Uprime.(max.(ρ_next, 0.0))
@@ -17,7 +17,7 @@ end
 """
 v[p,k] = v_{i_p + 1/2 * e_k}    
 """
-function v(ξ::Vector{T}, mesh::MeshADE) where {T<:Number}
+function v(ξ::Vector{T}, mesh::UniformMeshADE) where {T<:Number}
     Nh = length(mesh.Ih)
     d = dimension(mesh)
     v = Matrix{T}(undef, Nh, d)
@@ -27,7 +27,7 @@ function v(ξ::Vector{T}, mesh::MeshADE) where {T<:Number}
             if isnothing(q)
                 v[p, k] = 0.0
             else
-                v[p, k] = -(ξ[q] - ξ[p]) / (mesh.h)
+                v[p, k] = -(ξ[q] - ξ[p]) / (mesh.h[k])
             end
         end
     end
@@ -37,7 +37,7 @@ end
 """
 F[p,k] = F_{i_p + 1/2 * e_k}    
 """
-function F(ρ::Vector{T}, v, problem::ADEProblem, mesh::MeshADE) where {T<:Number}
+function F(ρ::Vector{T}, v, problem::ADEProblem, mesh::UniformMeshADE) where {T<:Number}
     Nh = length(mesh.Ih)
     d = dimension(mesh)
     F = Matrix{T}(undef, Nh, d)
@@ -69,14 +69,14 @@ function L(F::Matrix{T}, mesh, τ) where {T<:Number}
     dρ = zeros(T, length(mesh.Ih))
     for p in eachindex(mesh.Ih)
         for k = 1:dimension(mesh)
-            dρ[p] += F[p, k]
+            dρ[p] += F[p, k] / mesh.h[k]
             q_minus = mesh.neighbours_minus[p, k] #i_{q_-} = i_p - e_k
             if !(isnothing(q_minus))
-                dρ[p] -= F[q_minus, k]
+                dρ[p] -= F[q_minus, k] / mesh.h[k]
             end
         end
     end
-    return (τ / mesh.h) * dρ
+    return τ * dρ
 end
 
 function implicit_problem(ρ_next, ρ_prev, problem, mesh, τ)
@@ -87,7 +87,7 @@ function implicit_problem(ρ_next, ρ_prev, problem, mesh, τ)
     return ρ_next + L_ρ - ρ_prev
 end
 
-function iterate(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Number; abs_tol=1e-3, max_iters=100)
+function iterate(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ::Number; abs_tol=1e-3, max_iters=100)
     G(ρ) = implicit_problem(ρ, ρ_prev, problem, mesh, τ)
     ρ_next = Newton(G, ρ_prev; abs_tol=abs_tol, max_iters=max_iters)
     # Newton solve may break positivity and mass conservation
@@ -103,8 +103,8 @@ function iterate(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Number; abs_to
     # return sol.u
 end
 
-function iterate_explicit(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Number; abs_tol=1e-3, max_iters=100)
-    ξ_ρ = ξ(ρ_prev, problem, mesh)
+function iterate_explicit(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ::Number)
+    ξ_ρ = ξ(ρ_prev, ρ_prev, problem, mesh)
     v_ρ = v(ξ_ρ, mesh)
     F_ρ = F(ρ_prev, v_ρ, problem, mesh)
     L_ρ = L(F_ρ, mesh, τ)
@@ -117,17 +117,16 @@ function iterate_explicit(ρ_prev, problem::ADEProblem, mesh::MeshADE, τ::Numbe
 end
 
 function free_energy(ρ, problem, mesh)
-    d = dimension(mesh)
-    h = mesh.h
     free_energy = 0.0
+    vol = cubevolume(mesh.h)
     if !isnothing(problem.U)
-        free_energy += h^d * sum(problem.U.(ρ))
+        free_energy += vol * sum(problem.U.(ρ))
     end
     if !isnothing(problem.V)
-        free_energy += h^d * dot(mesh.VV, ρ)
+        free_energy += vol * dot(mesh.VV, ρ)
     end
     if !isnothing(problem.K)
-        free_energy += 0.5 * h^d * dot(ρ, (mesh.KK) * ρ)
+        free_energy += 0.5 * vol * dot(ρ, (mesh.KK) * ρ)
     end
     return free_energy
 end

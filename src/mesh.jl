@@ -1,6 +1,6 @@
 """
 Mesh for ADE
-- h > 0 so that x_i = i * h
+- h vector so that x_i = i * h[i]
 - Ih = [i ∈ Z^d such that x_i ∈ Ω]
 - neighbours_plus[p,k] = q 
     - if q∈N then x_{i_q} = x_{i_p + e_k} ∈ Ω
@@ -13,43 +13,54 @@ Mesh for ADE
 - KK[p,q] = K(x[p],x[q])
 """
 
-abstract type MeshADEPlotData end
+abstract type UniformMeshADEPlotData end
 
 using LinearAlgebra
 
-mutable struct MeshADE
-    const h::Float64
+mutable struct UniformMeshADE
+    const h::Vector{Float64}
     const Ih::Vector{Vector{Int64}}
     const neighbours_plus::Matrix{Union{Int64,Nothing}}
     const neighbours_minus::Matrix{Union{Int64,Nothing}}
     VV::Union{Vector,Nothing}
     KK::Union{Symmetric{Float64,Matrix{Float64}},Nothing}
-    plotting_object::Union{MeshADEPlotData,Nothing}
+    plotting_object::Union{UniformMeshADEPlotData,Nothing}
 end
-function MeshADE(; problem::ADEProblem, is_in_Omega, h, mesh_limits)
+function UniformMeshADE(; problem::ADEProblem, is_in_Omega, h::Union{Real,Vector}, mesh_limits)
+    d = length(mesh_limits)
+    if typeof(h) <: Number
+        h = h * ones(d)
+    end
+    @debug typeof(h)
+
     Ih = generate_Ih(is_in_Omega, h, mesh_limits)
     d = length(mesh_limits)
     neighbours_plus = find_neighbours_plus(Ih, d)
     neighbours_minus = find_neighbours_minus(Ih, d)
     VV, KK = initialize_VV_WW(h, Ih, problem.V, problem.K)
-    return MeshADE(h, Ih, neighbours_plus, neighbours_minus, VV, KK, nothing)
-end
-function dimension(mesh::MeshADE)
-    length(mesh.Ih[1])
-end
-function x(i::Vector{Int64}, h::Number)::Vector{Float64}
-    return i * h
+    return UniformMeshADE(h, Ih, neighbours_plus, neighbours_minus, VV, KK, nothing)
 end
 
-function generate_Ih(is_in_Omega::Function, h::Real, mesh_limits::Vector)::Vector{Vector{Int64}}
+function dimension(mesh::UniformMeshADE)
+    length(mesh.h)
+end
+function cubevolume(h::Vector)
+    return prod(h for h in h)
+end
+
+function x(i::Vector{Int64}, h::Vector)::Vector{Float64}
+    return i .* h
+end
+
+function generate_Ih(is_in_Omega::Function, h::Vector, mesh_limits::Vector)::Vector{Vector{Int64}}
     d = length(mesh_limits)
     if d == 1
-        range = floor(Int64, mesh_limits[1][1] / h):ceil(Int64, mesh_limits[1][2] / h)
+        range = floor(Int64, mesh_limits[1][1] / h[1]):ceil(Int64, mesh_limits[1][2] / h[1])
         Ih = [[i] for i in range if is_in_Omega(x([i], h))]
     else
-        cube_zip = floor(Int64, mesh_limits[1][1] / h):ceil(Int64, mesh_limits[1][2] / h)
+        cube_zip = floor(Int64, mesh_limits[1][1] / h[1]):ceil(Int64, mesh_limits[1][2] / h[1])
         for k in 2:d
-            cube_zip = Iterators.product(cube_zip, floor(Int64, mesh_limits[k][1] / h):ceil(Int64, mesh_limits[k][2] / h))
+            cube_zip = Iterators.product(cube_zip, floor(Int64, mesh_limits[k][1] / h[k]):ceil(Int64, mesh_limits[k][2] / h[k]))
         end
         Ih = [collect(i) for i in cube_zip if is_in_Omega(x(collect(i), h))]
     end
@@ -84,8 +95,6 @@ function find_neighbours_minus(Ih, d)::Matrix{Union{Int64,Nothing}}
 end
 
 function initialize_VV_WW(h, Ih, V, K)
-    Nh = length(Ih)
-    d = length(Ih[1])
     if isnothing(V)
         VV = nothing
     else
@@ -94,7 +103,7 @@ function initialize_VV_WW(h, Ih, V, K)
     if isnothing(K)
         KK = nothing
     else
-        KK = Symmetric([h^d * K(x(i, h), x(j, h)) for i in Ih, j in Ih])
+        KK = Symmetric([cubevolume(h) * K(x(i, h), x(j, h)) for i in Ih, j in Ih])
     end
     return VV, KK
 end

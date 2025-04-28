@@ -9,7 +9,7 @@ experiment = "aggregation-d1"
 include("cases/$experiment.jl")
 
 println("Meshing")
-mesh = FVADE.MeshADE(
+mesh = FVADE.UniformMeshADE(
     problem=problem,
     is_in_Omega=is_in_Omega,
     h=h,

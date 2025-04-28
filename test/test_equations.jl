@@ -3,7 +3,7 @@
     is_in_Omega(x) = (sum(x .^ 2) < 1.5)
     limits = [(-2, 2), (-2, 2)]
     problem = FVADE.ADEProblem(U=s -> s^2, V=x -> 0.0, K=(x, y) -> 0.0; Uprime=s -> 2 * s)
-    mesh = FVADE.MeshADE(problem=problem,
+    mesh = FVADE.UniformMeshADE(problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,
         mesh_limits=limits)
@@ -31,7 +31,7 @@ end
         V=x -> sum(x .^ 2) / 2,
         K=nothing,
     )
-    mesh = FVADE.MeshADE(
+    mesh = FVADE.UniformMeshADE(
         problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,
@@ -60,7 +60,7 @@ end
         K=nothing,
     )
     h = 2e-2
-    mesh = FVADE.MeshADE(
+    mesh = FVADE.UniformMeshADE(
         problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,

@@ -41,7 +41,7 @@ plottitle = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = 0, K = 0, 
 T = 0.5
 
 function solve(h)
-    mesh = FVADE.MeshADE(
+    mesh = FVADE.UniformMeshADE(
         problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,

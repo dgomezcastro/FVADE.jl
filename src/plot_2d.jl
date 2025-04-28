@@ -1,13 +1,13 @@
 using Plots, LaTeXStrings
 
-struct MeshADEPlotData2d <: MeshADEPlotData
+struct UniformMeshADEPlotData2d <: UniformMeshADEPlotData
     i1s
     i2s
     xs
     ys
 end
 
-function initialize_plotmesh_2d!(mesh::MeshADE)
+function initialize_plotmesh_2d!(mesh::UniformMeshADE)
     d = dimension(mesh)
     if d ≠ 2
         @error "This function is for d=2"
@@ -17,12 +17,12 @@ function initialize_plotmesh_2d!(mesh::MeshADE)
 
     i1s = imins[1]:imaxs[1]
     i2s = imins[2]:imaxs[2]
-    xs = mesh.h * i1s
-    ys = mesh.h * i2s
-    mesh.plotting_object = MeshADEPlotData2d(i1s, i2s, xs, ys)
+    xs = mesh.h .* i1s
+    ys = mesh.h .* i2s
+    mesh.plotting_object = UniformMeshADEPlotData2d(i1s, i2s, xs, ys)
 end
 
-function vector_to_matrix(ρ, mesh::MeshADE)
+function vector_to_matrix(ρ, mesh::UniformMeshADE)
     d = dimension(mesh)
     if d ≠ 2
         @error "This function is for d=2"

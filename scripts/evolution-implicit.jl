@@ -13,7 +13,7 @@ include("cases/$simulation_name.jl")
 # ENV["JULIA_DEBUG"] = all
 
 println("Meshing")
-mesh = FVADE.MeshADE(
+mesh = FVADE.UniformMeshADE(
     problem=problem,
     is_in_Omega=is_in_Omega,
     h=h,
