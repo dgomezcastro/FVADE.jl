@@ -17,8 +17,8 @@ function initialize_plotmesh_2d!(mesh::UniformMeshADE)
 
     i1s = imins[1]:imaxs[1]
     i2s = imins[2]:imaxs[2]
-    xs = mesh.h .* i1s
-    ys = mesh.h .* i2s
+    xs = mesh.h[1] .* i1s
+    ys = mesh.h[2] .* i2s
     mesh.plotting_object = UniformMeshADEPlotData2d(i1s, i2s, xs, ys)
 end
 

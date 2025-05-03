@@ -107,3 +107,7 @@ function initialize_VV_WW(h, Ih, V, K)
     end
     return VV, KK
 end
+
+function initialize_ρ(ρ0::Function, mesh)::Vector
+    return [Float64(ρ0(x(i, mesh.h))) for i in mesh.Ih]
+end

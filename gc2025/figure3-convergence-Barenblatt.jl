@@ -56,7 +56,8 @@ function solve(h)
     t = 0:τ:T
     ρ = Matrix{Float64}(undef, length(t), length(mesh.Ih))
 
-    ρ[1, :] = [Float64(ρ0(FVADE.x(i, h))) for i in mesh.Ih]
+    ρ[1, :] = FVADE.initialize_ρ(ρ0, mesh)
+
 
     @showprogress for n in 2:length(t)
         global ρ[n, :] = FVADE.iterate(
