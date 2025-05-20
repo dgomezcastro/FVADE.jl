@@ -3,11 +3,13 @@
     is_in_Omega(x) = (sum(x .^ 2) < 1.5)
     limits = [(-2, 2), (-2, 2)]
     problem = FVADE.ADEProblem(U=s -> s^2, V=x -> 0.0, K=(x, y) -> 0.0; Uprime=s -> 2 * s)
-    mesh = FVADE.UniformMeshADE(problem=problem,
+    mesh = FVADE.UniformMeshADE(
         is_in_Omega=is_in_Omega,
         h=h,
         mesh_limits=limits)
     ρ = zeros(length(mesh.Ih))
+
+    FVADE.initialize!(mesh, problem)
     ξ = FVADE.ξ(ρ, ρ, problem, mesh)
     @test ξ == zeros(length(mesh.Ih))
     v = FVADE.v(ξ, mesh)
@@ -32,13 +34,14 @@ end
         K=nothing,
     )
     mesh = FVADE.UniformMeshADE(
-        problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,
         mesh_limits=limits
     )
     @test mesh.Ih == [[-3], [-2], [-1], [0], [1], [2], [3]]
     ρ = zeros(length(mesh.Ih))
+
+    FVADE.initialize!(mesh, problem)
     ξ = FVADE.ξ(ρ, ρ, problem, mesh)
     @test ξ ≈ [0.28125, 0.125, 0.03125, 0.0, 0.03125, 0.125, 0.28125]
     v = FVADE.v(ξ, mesh)
@@ -61,10 +64,10 @@ end
     )
     h = 2e-2
     mesh = FVADE.UniformMeshADE(
-        problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,
         mesh_limits=limits
     )
+    FVADE.initialize!(mesh, problem)
     @test FVADE.free_energy(zeros(length(mesh.Ih)), problem, mesh) == 0.0
 end

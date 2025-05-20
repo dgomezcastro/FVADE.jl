@@ -1,15 +1,39 @@
 using LinearAlgebra
 
+struct MeshCoefficientsADE <: ProblemCoefficients
+    VV::Union{Vector,Nothing}
+    KK::Union{Symmetric{Float64,Matrix{Float64}},Nothing}
+end
+
+function initialize_VV_WW(h, Ih, V, K)::MeshCoefficientsADE
+    if isnothing(V)
+        VV = nothing
+    else
+        VV = [V(x(i, h)) for i in Ih]
+    end
+    if isnothing(K)
+        KK = nothing
+    else
+        KK = Symmetric([cubevolume(h) * K(x(i, h), x(j, h)) for i in Ih, j in Ih])
+    end
+    return MeshCoefficientsADE(VV, KK)
+end
+
+function initialize!(mesh::UniformMeshADE, problem::ADEProblem)
+    mesh.coefficients = initialize_VV_WW(mesh.h, mesh.Ih, problem.V, problem.K)
+    return nothing
+end
+
 function ξ(ρ_next::Vector{T}, ρ_prev, problem::ADEProblem, mesh::UniformMeshADE) where {T<:Number}
     ξ = zeros(T, size(ρ_next))
     if !(isnothing(problem.Uprime))
         ξ += problem.Uprime.(max.(ρ_next, 0.0))
     end
     if !(isnothing(problem.V))
-        ξ += mesh.VV
+        ξ += mesh.coefficients.VV
     end
     if !(isnothing(problem.K))
-        ξ += mesh.KK * (ρ_next + ρ_prev) / 2
+        ξ += mesh.coefficients.KK * (ρ_next + ρ_prev) / 2
     end
     return ξ
 end
@@ -87,7 +111,14 @@ function implicit_problem(ρ_next, ρ_prev, problem, mesh, τ)
     return ρ_next + L_ρ - ρ_prev
 end
 
+"""
+Iterates the ADE problem with no-flux conditions using implicit Euler
+"""
 function iterate(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ::Number; abs_tol=1e-3, max_iters=100)
+    if isnothing(mesh.coefficients)
+        initialize!(mesh, problem)
+    end
+
     G(ρ) = implicit_problem(ρ, ρ_prev, problem, mesh, τ)
     ρ_next = Newton(G, ρ_prev; abs_tol=abs_tol, max_iters=max_iters)
     # Newton solve may break positivity and mass conservation
@@ -103,7 +134,14 @@ function iterate(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ::Number;
     # return sol.u
 end
 
+"""
+Iterates the ADE problem with no-flux conditions using explicit Euler
+"""
 function iterate_explicit(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ::Number)
+    if isnothing(mesh.coefficients)
+        initialize!(mesh, problem)
+    end
+
     ξ_ρ = ξ(ρ_prev, ρ_prev, problem, mesh)
     v_ρ = v(ξ_ρ, mesh)
     F_ρ = F(ρ_prev, v_ρ, problem, mesh)
@@ -123,10 +161,10 @@ function free_energy(ρ, problem, mesh)
         free_energy += vol * sum(problem.U.(ρ))
     end
     if !isnothing(problem.V)
-        free_energy += vol * dot(mesh.VV, ρ)
+        free_energy += vol * dot(mesh.coefficients.VV, ρ)
     end
     if !isnothing(problem.K)
-        free_energy += 0.5 * vol * dot(ρ, (mesh.KK) * ρ)
+        free_energy += 0.5 * vol * dot(ρ, (mesh.coefficients.KK) * ρ)
     end
     return free_energy
 end

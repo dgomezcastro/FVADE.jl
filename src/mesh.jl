@@ -1,32 +1,32 @@
-"""
-Mesh for ADE
-- h vector so that x_i = i * h[i]
-- Ih = [i ∈ Z^d such that x_i ∈ Ω]
-- neighbours_plus[p,k] = q 
-    - if q∈N then x_{i_q} = x_{i_p + e_k} ∈ Ω
-    - q=nothing then x_{i_p + e_k} ∉ Ω
-- neighbours_minus[p,k] = q 
-    - if q∈N then x_{i_q} = x_{i_p - e_k} ∈ Ω
-    - q=nothing then x_{i_p - e_k} ∉ Ω
-
-- VV[p] = V(x[p])
-- KK[p,q] = K(x[p],x[q])
-"""
-
-abstract type UniformMeshADEPlotData end
-
 using LinearAlgebra
 
+abstract type UniformMeshADEPlotData end
+abstract type ProblemCoefficients end
+
+"""
+Mesh for ADE
+    - h vector so that x_i = i * h[i]
+    - Ih = [i ∈ Z^d such that x_i ∈ Ω]
+    - neighbours_plus[p,k] = q 
+    - if q∈N then x_{i_q} = x_{i_p + e_k} ∈ Ω
+    - q=nothing then x_{i_p + e_k} ∉ Ω
+    - neighbours_minus[p,k] = q 
+    - if q∈N then x_{i_q} = x_{i_p - e_k} ∈ Ω
+    - q=nothing then x_{i_p - e_k} ∉ Ω
+    
+    - VV[p] = V(x[p])
+    - KK[p,q] = K(x[p],x[q])
+"""
 mutable struct UniformMeshADE
     const h::Vector{Float64}
     const Ih::Vector{Vector{Int64}}
+    const Ihplus::Union{Vector{Vector{Int64}},Nothing} # Additional space to add more points to the mesh
     const neighbours_plus::Matrix{Union{Int64,Nothing}}
     const neighbours_minus::Matrix{Union{Int64,Nothing}}
-    VV::Union{Vector,Nothing}
-    KK::Union{Symmetric{Float64,Matrix{Float64}},Nothing}
+    coefficients::Union{ProblemCoefficients,Nothing}
     plotting_object::Union{UniformMeshADEPlotData,Nothing}
 end
-function UniformMeshADE(; problem::ADEProblem, is_in_Omega, h::Union{Real,Vector}, mesh_limits)
+function UniformMeshADE(; is_in_Omega, h::Union{Real,Vector}, mesh_limits)
     d = length(mesh_limits)
     if typeof(h) <: Number
         h = h * ones(d)
@@ -37,8 +37,7 @@ function UniformMeshADE(; problem::ADEProblem, is_in_Omega, h::Union{Real,Vector
     d = length(mesh_limits)
     neighbours_plus = find_neighbours_plus(Ih, d)
     neighbours_minus = find_neighbours_minus(Ih, d)
-    VV, KK = initialize_VV_WW(h, Ih, problem.V, problem.K)
-    return UniformMeshADE(h, Ih, neighbours_plus, neighbours_minus, VV, KK, nothing)
+    return UniformMeshADE(h, Ih, nothing, neighbours_plus, neighbours_minus, nothing, nothing)
 end
 
 function dimension(mesh::UniformMeshADE)
@@ -92,20 +91,6 @@ function find_neighbours_minus(Ih, d)::Matrix{Union{Int64,Nothing}}
         end
     end
     return neighbours
-end
-
-function initialize_VV_WW(h, Ih, V, K)
-    if isnothing(V)
-        VV = nothing
-    else
-        VV = [V(x(i, h)) for i in Ih]
-    end
-    if isnothing(K)
-        KK = nothing
-    else
-        KK = Symmetric([cubevolume(h) * K(x(i, h), x(j, h)) for i in Ih, j in Ih])
-    end
-    return VV, KK
 end
 
 function initialize_ρ(ρ0::Function, mesh)::Vector

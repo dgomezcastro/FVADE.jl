@@ -31,15 +31,17 @@ end
         limits = [(-1, 1), (-1, 1)]
         problem = FVADE.ADEProblem(U=s -> s^2, V=x -> 0.0, K=(x, y) -> 0.0)
         mesh = FVADE.UniformMeshADE(
-            problem=problem,
             is_in_Omega=is_in_Omega,
             h=h,
             mesh_limits=limits)
         @test mesh.h == [h, h]
         @test mesh.Ih == [[0, 0]]
-        @test mesh.VV == [0.0]
-        @test typeof(mesh.KK) == LinearAlgebra.Symmetric{Float64,Matrix{Float64}}
-        @test mesh.KK == [0.0;;]
+        @test isnothing(mesh.coefficients)
+
+        FVADE.initialize!(mesh, problem)
+        @test mesh.coefficients.VV == [0.0]
+        @test typeof(mesh.coefficients.KK) == LinearAlgebra.Symmetric{Float64,Matrix{Float64}}
+        @test mesh.coefficients.KK == [0.0;;]
     end
     @testset "Circle" begin
         h = 1
@@ -47,7 +49,6 @@ end
         limits = [(-2, 2), (-2, 2)]
         problem = FVADE.ADEProblem(U=s -> s^2, V=x -> 0.0, K=(x, y) -> x[1] + y[1])
         mesh = FVADE.UniformMeshADE(
-            problem=problem,
             is_in_Omega=is_in_Omega,
             h=h,
             mesh_limits=limits)
