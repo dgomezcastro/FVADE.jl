@@ -20,7 +20,7 @@ Mesh for ADE
 mutable struct UniformMeshADE
     const h::Vector{Float64}
     const Ih::Vector{Vector{Int64}}
-    const Ihplus::Union{Vector{Vector{Int64}},Nothing} # Additional space to add more points to the mesh
+    Ihplus::Union{Vector{Vector{Int64}},Nothing} # Additional space to add more points to the mesh
     const neighbours_plus::Matrix{Union{Int64,Nothing}}
     const neighbours_minus::Matrix{Union{Int64,Nothing}}
     coefficients::Union{ProblemCoefficients,Nothing}
