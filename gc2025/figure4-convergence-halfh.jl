@@ -4,12 +4,6 @@ using Plots, LaTeXStrings, Plots.Measures
 using LinearAlgebra
 using JLD2
 
-ρ0(x) = 0.6
-ρ0_text = latexstring("$(ρ0(0.0))")
-
-# ρ0(x) = min(2.0 * exp(-norm(x / 0.5)^2), 1.0)
-# ρ0_text = L"min\{ 2 e^{-|x/0.5|^2}, 1 \}"
-
 d = 1
 if d == 1
     L = 4
@@ -25,6 +19,11 @@ elseif d == 2
     hs = 2.0 .^ collect(-2:-1:-5)
 end
 
+ρ0(x) = 0.6
+ρ0_text = latexstring("$(ρ0(0.0))")
+
+# ρ0(x) = min(2.0 * exp(-norm(x / 0.5)^2), 1.0)
+# ρ0_text = L"min\{ 2 e^{-|x/0.5|^2}, 1 \}"
 
 m = 2
 problem = FVADE.ADEProblem(
@@ -35,14 +34,13 @@ problem = FVADE.ADEProblem(
     mobup=s -> s,
     mobdown=s -> (1 - s)
 )
-plottitle = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = 0, K = 0, \\rho_0 = ") * ρ0_text *
-            "\n" * latexstring("\\Omega = [-$L,$L]^$d, T = 1, τ = h^{$exponent_of_tau}")
+plottitle = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = |x|^2, K = 0, \\rho_0 = ") * ρ0_text *
+            "\n" * latexstring("\\Omega = [-$L,$L]", (d > 1) ? "^$d" : "", ", T = 1, τ = h^{$exponent_of_tau}")
 
 T = 0.5
 
 function solve(h)
     mesh = FVADE.UniformMeshADE(
-        problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,
         mesh_limits=limits

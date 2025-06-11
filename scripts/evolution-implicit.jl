@@ -11,7 +11,6 @@ function generate_figure_evolution()
 
     println("Meshing")
     mesh = FVADE.UniformMeshADE(
-        problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,
         mesh_limits=limits

@@ -9,7 +9,6 @@ using LinearAlgebra
 function generate_figure_energy_decay()
     println("Meshing")
     mesh = FVADE.UniformMeshADE(
-        problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,
         mesh_limits=limits

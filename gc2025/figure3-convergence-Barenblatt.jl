@@ -46,7 +46,6 @@ problem = FVADE.ADEProblem(
 
 function solve(h)
     mesh = FVADE.UniformMeshADE(
-        problem=problem,
         is_in_Omega=is_in_Omega,
         h=h,
         mesh_limits=limits
