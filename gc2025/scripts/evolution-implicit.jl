@@ -40,7 +40,7 @@ function generate_figure_evolution()
     mp4(anim, "figures/$simulation_name.mp4")
 
     theplot = FVADE.plot_2d(ρ, mesh)
-    title!(plottitle * latexstring("t=$T"))
+    title!(plottitle * latexstring(", t=$T"))
     if !isnothing(zlimit)
         zlims!(0, zlimit)
     end
