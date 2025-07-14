@@ -60,7 +60,7 @@ end
         U=s -> 0.0,
         Uprime=s -> 0.0,
         V=x -> sum(x .^ 2) / 2,
-        K=nothing,
+        K=(x, y) -> 0.0,
     )
     h = 2e-2
     mesh = FVADE.UniformMeshADE(
@@ -68,6 +68,5 @@ end
         h=h,
         mesh_limits=limits
     )
-    FVADE.initialize!(mesh, problem)
     @test FVADE.free_energy(zeros(length(mesh.Ih)), problem, mesh) == 0.0
 end

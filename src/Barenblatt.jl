@@ -40,7 +40,7 @@ function (B::BarenblattPME)(r::Number, t::Number)
 end
 
 function (B::BarenblattPME)(x::Vector, t::Number)
-    if length(x) == BarenblattPME.N
+    if length(x) == B.N
         return B(norm(x), t)
     else
         throw(DomainError(x, "Dimension of the Barenblatt and length of vector do not match"))

@@ -155,6 +155,10 @@ function iterate_explicit(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ
 end
 
 function free_energy(ρ, problem, mesh)
+    if isnothing(mesh.coefficients)
+        initialize!(mesh, problem)
+    end
+
     free_energy = 0.0
     vol = cubevolume(mesh.h)
     if !isnothing(problem.U)

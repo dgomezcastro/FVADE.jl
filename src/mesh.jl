@@ -51,6 +51,10 @@ function x(i::Vector{Int64}, h::Vector)::Vector{Float64}
     return i .* h
 end
 
+function x(i::Vector{Int64}, h::Number)::Vector{Float64}
+    return i * h
+end
+
 function generate_Ih(is_in_Omega::Function, h::Vector, mesh_limits::Vector)::Vector{Vector{Int64}}
     d = length(mesh_limits)
     if d == 1
