@@ -27,6 +27,7 @@ include("equations.jl")
 
 include("Barenblatt.jl")
 
+include("plot_1d.jl")
 include("plot_2d.jl")
 
 end # module FVADE

@@ -6,53 +6,22 @@ This packages implements a finite-volume scheme for aggregation-diffusion equati
 
 Clone this repository to a folder, open julia in that folder and to install all dependencies run
 ```julia
-using Pkg; Pkg.activate(".")
+using Pkg; 
+Pkg.activate(".")
 Pkg.instantiate()
 ```
 
-## A simple example
-For a very simple example in $d=1$ run
+## Simple examples of use
+The `examples` folder contains simple examples of use $d=1$ and $d=2$. In you are running julia from the main folder to run the $d=1$ run 
 ```julia
-using Pkg; Pkg.activate(".")
-using Plots
-import FVADE
-is_in_Omega(x) = (-4 < x[1] < 4)&&(-4 < x[2] < 4)
-h = 2^-2
-τ = h^2
-T = 2.0
-
-ρ0(x) = 0.3
-
-problem = FVADE.ADEProblem(
-    U=s -> s^2,
-    V=x->sum(x.^2)/2,
-    K=nothing,
-    mobup=s->s,
-    mobdown=s->1.0,
-)
-mesh = FVADE.UniformMeshADE(
-        is_in_Omega=is_in_Omega,
-        h=h,
-        mesh_limits=[(-4, 4),(-4,4)]
-    )
-
-ρ = FVADE.initialize_ρ(ρ0, mesh)
-
-@gif for n in 0:(T/τ)   
-    global ρ
-    FVADE.plot_2d(ρ, mesh)
-    title!("t=$(round(n*τ,digits=3))")
-    zlims!(0,2)
-
-    ρ = FVADE.iterate(
-        ρ, problem, mesh, τ; abs_tol=1e-8, max_iters=20
-    )
-end
+include("examples/d=1.jl")
 ```
-
 
 ## Reproducing the figures in the paper
 For an example run
 ```julia
 include("gc2025/figure1-steady-state.jl")
+include("gc2025/figure2-energy-decay.jl")
+include("gc2025/figure3-convergence-Barenblatt.jl")
+include("gc2025/figure4-convergence-halfh.jl")
 ```
