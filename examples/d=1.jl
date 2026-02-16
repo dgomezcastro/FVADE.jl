@@ -8,7 +8,7 @@ h = 2^-2
 τ = h^2
 T = 5.0
 
-ρ0(x) = 0.3
+ρ0(x) = 0.3 # or max((1 - x[1]^2),0.0)
 
 problem = FVADE.ADEProblem(
     U=s -> s^2,
