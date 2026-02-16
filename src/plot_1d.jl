@@ -15,7 +15,7 @@ function plot_1d(ρ, mesh; color=nothing, alpha=1.0, label="")
             alpha=alpha
         )
     else
-        p = surface(
+        p = plot(
             x, ρ,
             label=label,
             color=color,
