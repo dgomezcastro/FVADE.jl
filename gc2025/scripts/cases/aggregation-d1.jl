@@ -2,7 +2,7 @@ L = 4
 d = 1
 
 is_in_Omega(x) = (-L < x[1] < L)
-h = 2^-2
+h = 2^-3
 limits = [(-L, L)]
 
 exponent_of_tau = 3

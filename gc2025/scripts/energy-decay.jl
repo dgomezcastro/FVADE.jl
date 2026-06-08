@@ -35,10 +35,25 @@ function generate_figure_energy_decay()
     end
 
     plot(τ * [0:(N-1);], free_energies,
-        title=plottitle * latexstring("T=$T"),
+        title=plottitle * latexstring(", T=$T"),
         label="",
         xlabel=L"t",
         ylabel=L"\mathcal{F}[\rho_t]",
         linewidth=2)
     savefig("figures/energydecay-$experiment.pdf")
+
+    if length(mesh.h) == 1
+        theplot = FVADE.plot_1d(ρ, mesh)
+        title!(plottitle * latexstring(", t=$T"))
+        savefig("figures/energydecay-$experiment-steadystate.pdf")
+        ylabel!(L"\rho_t")
+        xlabel!(L"x")
+    elseif length(mesh.h) == 2
+        theplot = FVADE.plot_2d(ρ, mesh)
+        title!(plottitle * latexstring(", t=$T"))
+        zlabel!(L"\rho_t")
+        xlabel!(L"x")
+        ylabel!(L"y")
+        savefig("figures/energydecay-$experiment-steadystate.pdf")
+    end
 end

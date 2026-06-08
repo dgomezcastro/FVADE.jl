@@ -44,7 +44,7 @@ function dimension(mesh::UniformMeshADE)
     length(mesh.h)
 end
 function cubevolume(h::Vector)
-    return prod(h for h in h)
+    return prod(h)
 end
 
 function x(i::Vector{Int64}, h::Vector)::Vector{Float64}

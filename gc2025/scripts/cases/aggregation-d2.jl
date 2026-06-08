@@ -15,7 +15,14 @@ name = "energy-decay-aggregation-d$d"
 m = 2
 U = s -> s^m / (m - 1)
 Uprime = s -> m / (m - 1) * s^(m - 1)
-W(x) = norm(x)^2 / 2 #- norm(x)^4 / 4
+
+W(x) = norm(x)^2 / 2
+
+# W(x) = norm(x)^4 / 4
+
+# σ = 0.5
+# W(x) = -1 / sqrt(2 * pi * σ) * exp(-norm(x)^2 / (2 * σ^2))
+
 K = (x, y) -> W(x - y)
 problem = FVADE.ADEProblem(
     U=U, Uprime=Uprime,
