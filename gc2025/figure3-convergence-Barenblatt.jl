@@ -28,7 +28,7 @@ t0 = 1.0
 ρ_exact(x, t) = B(x, t + t0)
 ρ0_text = latexstring("\$\\textrm{Barenblatt}(M=$mass, t_0=$t0)\$")
 
-exponent_of_tau::Integer = 2
+exponent_of_tau = 2
 
 T = 1.0
 

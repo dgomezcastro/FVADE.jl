@@ -1,4 +1,5 @@
 using LinearAlgebra
+import NonlinearSolve as NLS
 
 struct MeshCoefficientsADE <: ProblemCoefficients
     VV::Union{Vector,Nothing}
@@ -119,9 +120,17 @@ function iterate(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ::Number;
         initialize!(mesh, problem)
     end
 
-    G(ρ) = implicit_problem(ρ, ρ_prev, problem, mesh, τ)
-    ρ_next = Newton(G, ρ_prev; abs_tol=abs_tol, max_iters=max_iters)
-    # Newton solve may break positivity and mass conservation
+
+    ## Solve using Newton
+    # G(ρ) = implicit_problem(ρ, ρ_prev, problem, mesh, τ)
+    # ρ_next = Newton(G, ρ_prev; abs_tol=abs_tol, max_iters=max_iters)
+
+    ## Solve using NonlinearSolve.jl
+    G(ρ, p) = implicit_problem(ρ, ρ_prev, problem, mesh, τ)
+    prob = NLS.NonlinearProblem(G, ρ_prev)
+    ρ_next = NLS.solve(prob, NLS.SimpleDFSane(); abstol=abs_tol).u # Solve using a quasi-Newton method
+
+    # Solver may break positivity and mass conservation
     ρ_next = max.(ρ_next, 0.0)
     if sum(ρ_prev) > 0
         ρ_next = ρ_next / sum(ρ_next) * sum(ρ_prev)
