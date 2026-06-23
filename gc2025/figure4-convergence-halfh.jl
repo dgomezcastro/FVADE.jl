@@ -9,13 +9,13 @@ if d == 1
     L = 4
     is_in_Omega(x) = (-L < x[1] < L)
     limits = [(-L, L)]
-    exponent_of_tau::Integer = 2
+    exponent_of_tau = 2
     hs = 2.0 .^ collect(-2:-1:-6)
 elseif d == 2
     L = 1
     is_in_Omega(x) = (-L < x[1] < L && -L < x[2] < L)
     limits = [(-L, L), (-L, L)]
-    exponent_of_tau::Integer = 2
+    exponent_of_tau = 2
     hs = 2.0 .^ collect(-2:-1:-5)
 end
 
@@ -73,7 +73,7 @@ for (k, h) in enumerate(hs)
 
     meshmapper = [findfirst(==(2 * i), Ihhalf) for i in Ih]
 
-    L1errors[k] = τ * h^d * sum(abs.(ρhhalf[1:2^exponent_of_tau:end, meshmapper] - ρh))
+    L1errors[k] = τ * h^d * sum(abs.(ρhhalf[1:(2^exponent_of_tau):end, meshmapper] - ρh))
     @show h, L1errors[k]
 end
 
