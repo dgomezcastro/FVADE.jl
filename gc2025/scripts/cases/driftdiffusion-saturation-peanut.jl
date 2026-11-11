@@ -22,4 +22,4 @@ zlimit = 1
 
 T = 2.0
 
-plottitle = latexstring("\\mathrm{m}=\\rho(1-\\rho), U=s^{$m}, V=|x|^2/2, K=0, \\rho_0 = 0.6") * "\n" * latexstring("h=$h, τ=h^$exponent_of_tau")
+plottitle = latexstring("\\mathrm{m}=\\rho(1-\\rho), U=\\rho^{$m}, V=|x|^2/2, K=0, \\rho_0 = 0.6") * "\n" * latexstring("h=$h, τ=h^$exponent_of_tau")
