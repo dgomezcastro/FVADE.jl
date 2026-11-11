@@ -2,6 +2,7 @@ import FVADE
 using ProgressMeter
 using Plots, LaTeXStrings
 using LinearAlgebra
+include("paper-figures.jl")
 
 # experiment = "aggregation-d2"
 # include("cases/$experiment.jl")
@@ -28,32 +29,33 @@ function generate_figure_energy_decay()
         free_energies[n] = FVADE.free_energy(ρ, problem, mesh)
 
         ρ = FVADE.iterate(
-            ρ, problem, mesh, τ; abs_tol=1e-8, max_iters=20
+            ρ, problem, mesh, τ; abs_tol=1e-8, max_iters=20, solver=paper_solver
         )
 
         next!(p)
     end
 
     plot(τ * [0:(N-1);], free_energies,
-        title=plottitle * latexstring(", T=$T"),
         label="",
         xlabel=L"t",
         ylabel=L"\mathcal{F}[\rho_t]",
-        linewidth=2)
+        linewidth=2,
+        left_margin=5mm) # so that the label is not cut
     savefig("figures/energydecay-$experiment.pdf")
+    save_caption("figures/energydecay-$experiment.tex", plottitle * latexstring(", T=$T"))
 
     if length(mesh.h) == 1
         theplot = FVADE.plot_1d(ρ, mesh)
-        title!(plottitle * latexstring(", t=$T"))
-        savefig("figures/energydecay-$experiment-steadystate.pdf")
         ylabel!(L"\rho_t")
         xlabel!(L"x")
+        savefig("figures/energydecay-$experiment-steadystate.pdf")
     elseif length(mesh.h) == 2
         theplot = FVADE.plot_2d(ρ, mesh)
-        title!(plottitle * latexstring(", t=$T"))
         zlabel!(L"\rho_t")
-        xlabel!(L"x")
-        ylabel!(L"y")
+        label_horizontal_axes!(theplot, mesh.plotting_object.xs, mesh.plotting_object.ys)
+        plot!(right_margin=6mm, # so that the colorbar labels are not cut
+            bottom_margin=8mm) # and the labels of the horizontal axes
         savefig("figures/energydecay-$experiment-steadystate.pdf")
     end
+    save_caption("figures/energydecay-$experiment-steadystate.tex", plottitle * latexstring(", t=$T"))
 end

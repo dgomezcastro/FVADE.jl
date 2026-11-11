@@ -3,6 +3,7 @@ using ProgressMeter
 using Plots, LaTeXStrings, Plots.Measures
 using LinearAlgebra
 using JLD2
+include("scripts/paper-figures.jl")
 
 d = 1
 if d == 1
@@ -34,10 +35,10 @@ problem = FVADE.ADEProblem(
     mobup=s -> s,
     mobdown=s -> (1 - s)
 )
-plottitle = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = |x|^2, K = 0, \\rho_0 = ") * ρ0_text *
-            "\n" * latexstring("\\Omega = [-$L,$L]", (d > 1) ? "^$d" : "", ", T = 1, τ = h^{$exponent_of_tau}")
-
 T = 0.5
+
+plottitle = latexstring("\\mathrm{m} = \\rho(1-\\rho), U=\\rho^2, V = |x|^2, K = 0, \\rho_0 = ") * ρ0_text *
+            "\n" * latexstring("\\Omega = [-$L,$L]", (d > 1) ? "^$d" : "", ", T = $T, τ = h^{$exponent_of_tau}")
 
 function solve(h)
     mesh = FVADE.UniformMeshADE(
@@ -56,7 +57,7 @@ function solve(h)
     @showprogress for n in 2:N
         global ρ[n, :] = FVADE.iterate(
             ρ[n-1, :],
-            problem, mesh, τ; abs_tol=1e-8, max_iters=10
+            problem, mesh, τ; abs_tol=1e-8, max_iters=10, solver=paper_solver
         )
     end
     return mesh.Ih, ρ
@@ -77,21 +78,6 @@ for (k, h) in enumerate(hs)
     @show h, L1errors[k]
 end
 
-
-plot(hs, L1errors,
-    scale=:log10,
-    marker=:circle,
-    xlabel=L"h",
-    ylabel=L"ε_h^{(2)}",
-    label="Simulation",
-    title=plottitle,
-    size=(700, 400),
-    topmargin=10mm,
-    bottommargin=5mm,
-    leftmargin=5mm
-)
-plot!(hs, hs, label=L"Linear scaling $\varepsilon_h = h$")
-
-savefig("figures/convergence-hhalf-d$d.pdf")
-
 save("figures/convergence-hhalf-d$d.jld2", Dict("plottitle" => plottitle, "hs" => hs, "L1errors" => L1errors))
+
+include("figure4-plot.jl")

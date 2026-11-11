@@ -34,4 +34,4 @@ problem = FVADE.ADEProblem(
 
 T = 0.5
 
-plottitle = latexstring("\\mathrm{m}=\\rho(1-\\rho), U=s^{$m}, V=0, K=|x-y|^2/2, \\rho_0 = 0.6") * "\n" * latexstring("\\Omega=[-$L,$L]^{$d}, h=$h, τ=h^$exponent_of_tau")
+plottitle = latexstring("\\mathrm{m}=\\rho(1-\\rho), U=s^{$m}, V=0, K=|x-y|^2/2, \\rho_0 = 0.6") * "\n" * latexstring("\\Omega=[-$L,$L]", (d > 1) ? "^{$d}" : "", ", h=$h, τ=h^$exponent_of_tau")

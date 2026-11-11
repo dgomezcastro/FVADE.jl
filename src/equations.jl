@@ -114,21 +114,28 @@ end
 
 """
 Iterates the ADE problem with no-flux conditions using implicit Euler
+
+The implicit equation is solved with NonlinearSolve.jl, using `solver`:
+- `:SimpleDFSane` (default), a derivative-free quasi-Newton method, which is significantly faster
+- `:NewtonRaphson`, Newton-Raphson's method with the Jacobian computed by ForwardDiff.jl, and at most `max_iters` iterations
 """
-function iterate(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ::Number; abs_tol=1e-3, max_iters=100)
+function iterate(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ::Number; abs_tol=1e-3, max_iters=100, solver=:SimpleDFSane)
     if isnothing(mesh.coefficients)
         initialize!(mesh, problem)
     end
 
 
-    ## Solve using Newton
-    # G(ρ) = implicit_problem(ρ, ρ_prev, problem, mesh, τ)
-    # ρ_next = Newton(G, ρ_prev; abs_tol=abs_tol, max_iters=max_iters)
 
     ## Solve using NonlinearSolve.jl
     G(ρ, p) = implicit_problem(ρ, ρ_prev, problem, mesh, τ)
     prob = NLS.NonlinearProblem(G, ρ_prev)
-    ρ_next = NLS.solve(prob, NLS.SimpleDFSane(); abstol=abs_tol).u # Solve using a quasi-Newton method
+    if solver == :SimpleDFSane
+        ρ_next = NLS.solve(prob, NLS.SimpleDFSane(); abstol=abs_tol).u # Solve using a quasi-Newton method
+    elseif solver == :NewtonRaphson
+        ρ_next = NLS.solve(prob, NLS.NewtonRaphson(); abstol=abs_tol, maxiters=max_iters).u
+    else
+        throw(ArgumentError("solver must be :SimpleDFSane or :NewtonRaphson, got $solver"))
+    end
 
     # Solver may break positivity and mass conservation
     ρ_next = max.(ρ_next, 0.0)
@@ -137,10 +144,6 @@ function iterate(ρ_prev, problem::ADEProblem, mesh::UniformMeshADE, τ::Number;
     end
     return ρ_next
 
-    # f(ρ_next, _) = implicit_problem(ρ_next, ρ, F, problem, mesh, τ)
-    # prob = NonlinearProblem(f, ρ, [])
-    # sol = solve(prob, NewtonRaphson(), abstol=1e-3, maxiters=round(Int64, 1e2))
-    # return sol.u
 end
 
 """

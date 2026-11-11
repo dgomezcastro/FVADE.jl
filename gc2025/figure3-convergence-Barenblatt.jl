@@ -3,6 +3,7 @@ using ProgressMeter
 using Plots, LaTeXStrings, Plots.Measures
 using LinearAlgebra
 using JLD2
+include("scripts/paper-figures.jl")
 
 L = 4
 
@@ -61,7 +62,7 @@ function solve(h)
     @showprogress for n in 2:length(t)
         global ρ[n, :] = FVADE.iterate(
             ρ[n-1, :],
-            problem, mesh, τ; abs_tol=1e-8, max_iters=10
+            problem, mesh, τ; abs_tol=1e-8, max_iters=10, solver=paper_solver
         )
     end
     return mesh.Ih, t, ρ
@@ -82,22 +83,8 @@ for (k, h) in enumerate(hs)
 end
 
 plottitle = latexstring("\\mathrm{m} = \\rho, U=\\rho^$m, V = 0, K = 0, \\rho_0 = ") * ρ0_text *
-            "\n" * latexstring("\\Omega = [-$L,$L]^$(d), T = $T, τ = h^{$exponent_of_tau}")
-
-plot(hs, L1errors,
-    scale=:log10,
-    marker=:circle,
-    xlabel=L"h",
-    ylabel=L"\varepsilon^{(1)}_h",
-    label="Simulation",
-    title=plottitle,
-    size=(700, 400),
-    topmargin=10mm,
-    bottommargin=5mm,
-    leftmargin=5mm
-)
-plot!(hs, hs, label=L"Linear scaling $\varepsilon_h = h$")
-
-savefig("figures/$title.pdf")
+            "\n" * latexstring("\\Omega = [-$L,$L]", (d > 1) ? "^$d" : "", ", T = $T, τ = h^{$exponent_of_tau}")
 
 save("figures/$title.jld2", Dict("plottitle" => plottitle, "hs" => hs, "L1errors" => L1errors))
+
+include("figure3-plot.jl")
